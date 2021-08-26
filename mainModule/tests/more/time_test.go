@@ -28,10 +28,11 @@ func TestTime(t *testing.T) {
 
 	var tm = time.Now()
 	fmt.Println(tm)
-	tm, err := time.Parse("2016-01-02 15:04:05", "2011-04-23 12:24:51")
+	tm, err := time.Parse("2006-01-02 15:04:05", "2011-04-23 12:24:51")
 	if err != nil {
 		fmt.Println(tm)
 	}
+	fmt.Println(time.Local)
 
 	fmt.Println(tm.Year(), tm.Month(), tm.Day(), tm.Hour(), tm.Minute(), tm.Second(), tm.Nanosecond())
 	fmt.Println(tm.Location())
