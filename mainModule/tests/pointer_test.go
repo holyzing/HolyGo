@@ -6,8 +6,34 @@ import (
 	"testing"
 )
 
-// NOTE redeclared in ehis block
+// NOTE redeclared in this block
 // type name int8
+
+// NOTE var p *string
+// NOTE 指针变量的值：指针指向的变量的内存地址,即 p,类型为 int
+// NOTE 指针地址的值：即指针变量自己本身的内存地址， 即 &p 类型为 int
+// NOTE 指针指向的值：指的是P值代表的地址上存储的值，即 *p 类型为 string
+// NOTE 在语义层面上指针变量是存放其它变量（变量的地址）的一种特殊的变量，
+//      解释器会对 *操作 做取出它指向的地址的值 的操作的特殊处理。
+
+// THINK 变量的值和变量指向的地址值 ？？？
+// THINK slice 底层是一个指向数组的指针变量 ？？？
+// THINK 变量是一种引用？引用某个地址的值 ？？？
+
+/**
+一、指针和引用的区别
+
+(1)引用总是指向一个对象,没有所谓的 null reference .所有当有可能指向一个对象也有可能不指向对象则必须使用 指针.
+   由于C++ 要求 reference 总是指向一个对象所以 reference要求有初值.
+
+   String & rs = string1;
+   由于没有所谓的 null reference 所以在使用前不需要进行测试其是否有值,而使用指针则需要测试其的有效性.
+
+(2)指针可以被重新赋值而reference则总是指向最初或地的对象.
+(3)必须使用reference的场合. Operator[] 操作符 由于该操作符很特别地必须返回
+   [能够被当做assignment 赋值对象] 的东西,所以需要给他返回一个 reference.
+(4)其实引用在函数的参数中经常使用.
+*/
 
 type First struct {
 	a int
