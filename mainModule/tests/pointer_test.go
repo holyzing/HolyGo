@@ -6,33 +6,41 @@ import (
 	"testing"
 )
 
-// NOTE redeclared in this block
+// NOTE redeclared in this block, previous declaration at ./defined_type.go
 // type name int8
 
 // NOTE var p *string
 // NOTE 指针变量的值：指针指向的变量的内存地址,即 p,类型为 int
-// NOTE 指针地址的值：即指针变量自己本身的内存地址， 即 &p 类型为 int
+// NOTE 指针的地址值：即指针变量自己本身的内存地址， 即 &p 类型为 int
 // NOTE 指针指向的值：指的是P值代表的地址上存储的值，即 *p 类型为 string
 // NOTE 在语义层面上指针变量是存放其它变量（变量的地址）的一种特殊的变量，
-//      解释器会对 *操作 做取出它指向的地址的值 的操作的特殊处理。
+//      编译器会对 *操作 做取出它指向的地址的值 的操作的特殊处理。
 
-// THINK 变量的值和变量指向的地址值 ？？？
-// THINK slice 底层是一个指向数组的指针变量 ？？？
-// THINK 变量是一种引用？引用某个地址的值 ？？？
+// THINK Go语言的内存模型 ？？？？？？？
 
 /**
 一、指针和引用的区别
 
-(1)引用总是指向一个对象,没有所谓的 null reference .所有当有可能指向一个对象也有可能不指向对象则必须使用 指针.
-   由于C++ 要求 reference 总是指向一个对象所以 reference要求有初值.
+指针（pointer）在Go语言中可以被拆分为两个核心概念：
 
-   String & rs = string1;
-   由于没有所谓的 null reference 所以在使用前不需要进行测试其是否有值,而使用指针则需要测试其的有效性.
+类型指针：允许对这个指针类型的数据进行修改，传递数据可以直接使用指针，而无须拷贝数据，类型指针不能进行偏移和运算。
+	    受益于这样的约束和拆分，Go语言的指针类型变量即拥有指针高效访问的特点，又不会发生指针偏移，
+	    从而避免了非法修改关键性数据的问题。同时，垃圾回收也比较容易对不会发生偏移的指针进行检索和回收。
+切片：由指向起始元素的原始指针、元素数量和容量组成。
+     切片比原始指针具备更强大的特性，而且更为安全。切片在发生越界时，运行时会报出宕机，并打出堆栈，而原始指针只会崩溃。
 
-(2)指针可以被重新赋值而reference则总是指向最初或地的对象.
-(3)必须使用reference的场合. Operator[] 操作符 由于该操作符很特别地必须返回
-   [能够被当做assignment 赋值对象] 的东西,所以需要给他返回一个 reference.
-(4)其实引用在函数的参数中经常使用.
+
+(1) 引用总是指向一个对象,没有所谓的 null reference .当有可能指向一个对象也有可能不指向对象则必须使用 指针.
+    由于C++ 要求 reference 总是指向一个对象所以 reference要求有初值.
+
+    String & rs = string1;
+    由于没有所谓的 null reference 所以在使用前不需要进行测试其是否有值,而使用指针则需要测试其的有效性.
+
+(2) 指针可以被重新赋值而reference则总是指向最初或地的对象.
+(3) 必须使用reference的场合. Operator[] 操作符 由于该操作符很特别地必须返回
+    [能够被当做assignment 赋值对象] 的东西,所以需要给他返回一个 reference.
+(4) 其实引用在函数的参数中经常使用.
+
 */
 
 type First struct {
@@ -56,6 +64,7 @@ func TestPointer(t *testing.T) {
 	// pointInt = &1
 	pointInt = &i
 
+	fmt.Printf("%p\n", pointInt)
 	fmt.Println(pointInt, *pointInt, reflect.TypeOf(pointInt))
 
 	var a = First{1, false, 2}
@@ -74,8 +83,9 @@ func TestPointer(t *testing.T) {
 		fmt.Println(j)
 	}
 
-	// NOTE Go不支持指针算法。
-
+	// NOTE 使用 new 创建的类型实例返回的都是一个指向实例的指针
+	firstPtr := new(First)
+	fmt.Printf("%T\n", firstPtr)
 }
 
 const MAX int = 3

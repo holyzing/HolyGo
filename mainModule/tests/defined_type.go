@@ -19,5 +19,7 @@ type Second struct {
 }
 
 func Show(sec Second) {
+	s := second{}
+	fmt.Println(s.a, s.b, s.name)
 	fmt.Printf("%d, %t, %d", sec.A, sec.b, sec.name)
 }
