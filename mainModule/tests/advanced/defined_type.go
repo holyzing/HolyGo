@@ -1,4 +1,4 @@
-package more
+package advanced
 
 type More struct {
 	A int

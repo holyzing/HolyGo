@@ -1,4 +1,4 @@
-package more
+package advanced
 
 import (
 	"fmt"
