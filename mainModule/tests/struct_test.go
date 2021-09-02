@@ -6,8 +6,8 @@ import (
 	"strconv"
 	"testing"
 
-	// "./more"
-	"mainModule/tests/more"
+	// "./advanced"
+	"mainModule/tests/advanced"
 )
 
 type People struct {
@@ -26,6 +26,17 @@ func (p *People) showPointer() string {
 	// NOTE string()会直接把字节或者数字转换为字符的UTF-8表现形式
 	mesg := "name:" + p.name + " " + "age:" + strconv.Itoa(p.age) + (*p).name
 	return mesg
+}
+
+func (p *People) calledByUninstantiateiStruct() {
+	println("called by struct with a nil struct")
+}
+
+func TestCalledByUninstantiateiStruct(t *testing.T) {
+	var p People
+	p.calledByUninstantiateiStruct()
+	p.show()
+	p.showPointer()
 }
 
 // NOTE GO语言中的结构体
@@ -101,8 +112,8 @@ func TestStruct(t *testing.T) {
 	//      类似地，如果结构体的字段以大写开头，则可以从其他包访问它们。
 	//      比如在 more 包中使用 父包中定义 的 Second
 
-	// cannot refer to unexported field 'b' in struct literal of type more.Morego
-	m := more.More{A: 97}
+	// cannot refer to unexported field 'b' in struct literal of type advanced.Morego
+	m := advanced.More{A: 97}
 	fmt.Println(m.A) // 只能访问到 A
 }
 
