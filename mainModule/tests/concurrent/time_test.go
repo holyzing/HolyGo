@@ -1,24 +1,13 @@
-package advanced
+package concurrent
 
 import (
 	"fmt"
-	"mainModule/collects"
-	"mainModule/tests"
 	"testing"
 	"time"
 )
 
 // NOTE GO语言中的访问控制
 // NOTE 所有语法可见性均定义在package这个级别
-func TestPrivateOrPublic(t *testing.T) {
-	collects.Cao()
-	// NOTE 只能访问到结构体的公有的属性
-	se := tests.Second{}
-	fmt.Println(se.A)
-	m := More{A: 12, b: false}
-	println(m.A, m.b)
-}
-
 func TestTimeZone(t *testing.T) {
 	// 可以在 $GOROOT/lib/time/zoneinfo.zip 文件下看到所有时区。
 	// 默认UTC

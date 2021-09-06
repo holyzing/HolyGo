@@ -1,6 +1,7 @@
 package concurrent
 
 import (
+	"errors"
 	"fmt"
 	"math/rand"
 	"sync"
@@ -209,20 +210,191 @@ func TestSelectTimeout(t *testing.T) {
 	quit := make(chan bool)
 	//新开一个协程
 	go func() {
+	outer:
 		for {
 			select {
-			case num := <-ch: // 如果ch成功读到数据，则进行该case处理语句
+			// 如果ch成功读到数据，则进行该case处理语句
+			case num := <-ch:
 				fmt.Println("num = ", num)
 			case <-time.After(3 * time.Second):
 				fmt.Println("超时")
 				quit <- true
+				break outer
 			}
 		}
-	}() //别忘了()
+	}()
 	for i := 0; i < 5; i++ {
 		ch <- i
 		time.Sleep(time.Second)
 	}
 	<-quit
 	fmt.Println("程序结束")
+	println("-----------------------------------------------------")
+
+	/*  NOTE Select 多路复用
+	在使用通道时，想同时接收多个通道的数据是一件困难的事情。通道在接收数据时，
+	如果没有数据可以接收将会发生阻塞。虽然可以使用for 循环依次进行遍历，但运行性能会非常差。
+	*/
+
+	for {
+		// ??? 如果 两个 case 都同时有IO 触发，会都执行吗 ？
+		select {
+		case ch <- 0:
+		case ch <- 1:
+		}
+		i := <-ch
+		fmt.Println("Value received:", i)
+		// 随机读写0或者1
+	}
+}
+
+// 使用select 模拟远程过程调用
+func TestSelectRpc(t *testing.T) {
+	/*
+		服务器开发中会使用RPC（Remote Procedure Call，远程过程调用）简化进程间通信的过程。
+		RPC 能有效地封装通信过程，让远程的数据收发通信过程看起来就像本地的函数调用一样。
+		使用通道代替 Socket 实现 RPC 的过程。
+		客户端与服务器运行在同一个进程，服务器和客户端在两个 goroutine 中运行
+	*/
+	RPCClient := func(server chan string, req string) (string, error) {
+		server <- req
+		var err error
+		select {
+		case resp, ok := <-server:
+			if ok {
+				return resp, nil
+			}
+		case currentTime := <-time.After(3):
+			fmt.Println(currentTime)
+			err = errors.New("time out !")
+		}
+		return "", err
+	}
+
+	RPCServer := func(req chan string) {
+		// 模拟超时 time.Sleep(4 * time.Second)
+		for {
+			// 接收客户端请求
+			data := <-req
+			// 打印接收到的数据
+			fmt.Println("server received:", data)
+			// 反馈给客户端收到
+			req <- "roger"
+		}
+	}
+
+	ch := make(chan string)
+	// 并发执行服务器逻辑
+	go RPCServer(ch)
+	// 客户端请求数据和接收数据
+	recv, err := RPCClient(ch, "hi")
+	if err != nil {
+		// 发生错误打印
+		fmt.Println(err)
+	} else {
+		// 正常接收到数据
+		fmt.Println("client received", recv)
+	}
+
+}
+
+// 通道响应计时器的事件
+func TestNewTimerNewTickerAfter(t *testing.T) {
+	// Go语言中的通道和 goroutine 的设计，定时任务可以在 goroutine
+	// 中通过同步的方式完成，也可以通过在 goroutine 中异步回调完成
+
+	exit := make(chan int)
+	callback := func() {
+		fmt.Println("callback ...")
+		exit <- 1
+	}
+	timer := time.AfterFunc(3*time.Second, callback)
+	// timer.Stop()
+	fmt.Println(timer)
+	<-exit
+	// NOTE 子协程不会像java或者python中的线程可以 join 到 主协程
+
+	/*
+		time.After() 函数是在 time.NewTimer() 函数上进行的封装，timer.NewTimer() 和 time.NewTicker()。
+		计时器（Timer）的原理和倒计时闹钟类似，都是给定多少时间后触发。
+		打点器（Ticker）的原理和钟表类似，钟表每到整点就会触发。
+		这两种方法创建后会返回 time.Ticker 对象和 time.Timer 对象，里面通过一个 C 成员，
+		类型是只能接收的时间通道（<-chan Time），使用这个通道就可以获得时间触发的通知。
+	*/
+
+	// --------------------------------------------------
+
+	// 创建一个打点器, 每500毫秒触发一次
+	ticker := time.NewTicker(time.Millisecond * 500)
+	// 创建一个计时器, 2秒后触发
+	stopper := time.NewTimer(time.Second * 2)
+	// 声明计数变量
+	var i int
+	// 不断地检查通道情况
+	for {
+		// 多路复用通道
+		select {
+		case <-stopper.C: // 计时器到时了
+			fmt.Println("stop")
+			// 跳出循环
+			goto StopHere
+		case <-ticker.C: // 打点器触发了
+			// 记录触发了多少次
+			i++
+			fmt.Println("tick", i)
+		}
+	}
+	// 退出的标签, 使用goto跳转
+StopHere:
+	fmt.Println("done")
+}
+
+// 操作已经关闭的channel
+func TestOperateClosedChannel(t *testing.T) {
+	unbufferedChannel := make(chan int)
+	fmt.Println("unbufferedChannel:", cap(unbufferedChannel), len(unbufferedChannel))
+	close(unbufferedChannel)
+	fmt.Println("unbufferedChannel:", cap(unbufferedChannel), len(unbufferedChannel))
+	// NOTE：1. 非缓存通道关闭，不能发送数据
+	// unbufferedChannel <- 1  panic: send on closed channel
+	// NOTE：2. 非缓存通道关闭，可以接收数据，接收的数据是通道数据类型的零值
+	d := <-unbufferedChannel
+	fmt.Println(d)
+	println("---------------------------------------------------------------------")
+
+	bufferedChannel := make(chan int, 3)
+	fmt.Println("bufferedChannel:", cap(bufferedChannel), len(bufferedChannel))
+	close(bufferedChannel)
+	fmt.Println("bufferedChannel:", cap(bufferedChannel), len(bufferedChannel))
+	// NOTE：3. 缓存通道关闭，不能发送数据
+	// bufferedChannel <- 1
+	// NOTE：4. 缓存通道关闭，可以接收数据，接收的数据是通道数据缓存的值，如果无缓存则是通道类型的零值
+	// d <- bufferedChannel // (send to non-chan type int)
+	e := <-bufferedChannel
+	fmt.Println(e)
+
+	/*
+		通道是一个引用对象，和 map 类似。map 在没有任何外部引用时，Go语言程序在运行时（runtime）会自动对内
+		存进行垃圾回收（Garbage Collection, GC）。类似的，通道也可以被垃圾回收，但是通道也可以被主动关闭。
+
+		从已经关闭的通道接收数据或者正在接收数据时，将会接收到通道类型的零值，然后停止阻塞并返回。
+	*/
+
+	// 创建一个整型带两个缓冲的通道
+	ch := make(chan int, 2)
+
+	// 给通道放入两个数据
+	ch <- 0
+	ch <- 1
+
+	// 关闭通道。此时，带缓冲通道的数据不会被释放，通道也没有消失
+	close(ch)
+	for i := 0; i <= cap(ch); i++ {
+
+		// 缓冲通道在关闭后依然可以访问内部的数据。
+		v, ok := <-ch
+
+		// 如果越界访问，则访问返回的是通道类型的零值
+		fmt.Println(v, ok)
+	}
 }
