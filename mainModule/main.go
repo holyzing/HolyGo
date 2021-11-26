@@ -62,7 +62,10 @@ func main() {
 		})
 	})
 	collects.Cao()
-	r.Run()
+	err := r.Run()
+	if err != nil {
+		return 
+	}
 }
 
 // go env -w GOPROXY=https://goproxy.cn,direct
