@@ -17,14 +17,18 @@ type People struct {
 
 func (p People) show() string {
 	// NOTE string()会直接把字节或者数字转换为字符的UTF-8表现形式
+	println("---------- instance show ")
 	mesg := "name:" + p.name + " " + "age:" + strconv.Itoa(p.age)
+	print(mesg)
 	return mesg
 }
 
 // ??? 结构体指针变量和结构体变量为什么作为函数或者方法参数,在函数或者方法内部都可以 . (点)属性
 func (p *People) showPointer() string {
 	// NOTE string()会直接把字节或者数字转换为字符的UTF-8表现形式
+	println("---------- pointer show ")
 	mesg := "name:" + p.name + " " + "age:" + strconv.Itoa(p.age) + (*p).name
+	print(mesg)
 	return mesg
 }
 
@@ -32,11 +36,36 @@ func (p *People) calledByUninstantiateiStruct() {
 	println("called by struct with a nil struct")
 }
 
+// NOTE 引用传递，值传递，引用类型，值类型
 func TestCalledByUninstantiateiStruct(t *testing.T) {
-	var p People
+	var p People // 结构体本身的一个拷贝 ????
+	// var p3 = People
+	p.age = 20
 	p.calledByUninstantiateiStruct()
 	p.show()
 	p.showPointer()
+
+	var i int     // default value： 0
+	var s string  // default value: ""
+	var p3 People // default value: People{}
+	println(p.age, p3.age, &p.age, &p3.age, i, s)
+
+	println("###################################################")
+
+	var p2 *People // default value: nil
+	p2.calledByUninstantiateiStruct()
+	p2 = &p
+	p2.show() // 接收一个类型实例的方法不能传入一个空指向的指针
+	// panic: runtime error: invalid memory address or nil pointer dereference
+	p2.showPointer()
+
+	// 指针作为函数参数，其实也是值传递，但是指针的操作符.被重载为访问指针指向的内存地址
+	// 但是go 应该是分引用类型和值类型的，这两种类型的定义是？还是人们的约定俗称 ？
+	println("###################################################")
+	println(&p2, p2.age)
+	func(p *People) {
+		println(&p, p.age)
+	}(p2)
 }
 
 // NOTE GO语言中的结构体

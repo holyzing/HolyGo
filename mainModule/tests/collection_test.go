@@ -35,9 +35,11 @@ func TestString(t *testing.T) {
 
 //NOTE Go语言中的数组
 func TestArray(t *testing.T) {
-	// NOTE 数组一旦被定义 则大小与元素类型不可改变, 一般数组元素的地址空间是连续的
-	// NOTE Go中的数组是值类型，而不是引用类型。这意味着当它们被分配给一个新变量时，
-	// NOTE 将把原始数组的副本分配给新变量。如果对新变量进行了更改，则不会在原始数组中反映。
+	/*
+		数组一旦被定义 则大小与元素类型不可改变, 一般数组元素的地址空间是连续的
+		Go中的数组是值类型，而不是引用类型。这意味着当它们被分配给一个新变量时，
+		将把原始数组的副本分配给新变量。如果对新变量进行了更改，则不会在原始数组中反映。
+	*/
 
 	// 1- 指定长度并完成了默认初始化
 	var nums [3]int              // 指定类型，默认值 为 0
@@ -54,12 +56,10 @@ func TestArray(t *testing.T) {
 	arr1 := [...]int{1, 2, 5: 7}
 	arr1[2] = 3
 	fmt.Println(arr1)
-	// duplicate index in array literal: 1go
-	// arr2 := [...]int{0: 1, 2, 1: 3}
+	// arr2 := [...]int{0: 1, 2, 1: 3}  // duplicate index in array literal: 1go
 
-	// NOTE 获取容器的长度，
 	// TODO 如何获取一个基础类型的长度 ？？？？
-	fmt.Println(len(arr1))
+	fmt.Println(len(arr1), len("dasdsa"))
 
 	// ------------------------------------------------------------
 	// NOTE 使用反射库获取变量的类型
@@ -154,22 +154,24 @@ func TestSlice(t *testing.T) {
 	NOTE 当多个切片共享相同的底层数组时，每个元素所做的更改将在数组中反映出来。
 	*/
 
-	println("-----------------------------------------------------")
+	// ??? 切片可以理解为是一个 特殊的指针
 	ar := [...]int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
-	// NOTE create a slice from array
-	sl := ar[:3:5]
-	fmt.Println(reflect.TypeOf(ar), reflect.TypeOf(sl), sl[2])
+	// create a slice from array
+	sl := ar[2:3:5]
+	fmt.Println(reflect.TypeOf(ar), reflect.TypeOf(sl), sl[0])
 
 	// NOTE 切片的长度是切片中元素的数量。切片的容量是从创建切片的索引开始的底层数组中元素的数量。
-	fmt.Println("cap-slice:", cap(sl), "len-slice:", len(sl))
+	// NOTE 访问切片时, index 值不能超过 len(slice)
 	fmt.Println("cap-array:", cap(ar), "len-array:", len(ar))
-	// NOTE 数据直接访问(slice[index])时, index 值不能超过 len(slice) 范围
+	fmt.Println("cap-slice:", cap(sl), "len-slice:", len(sl))
 	// NOTE 创建切片(slice[start:end])时, start 和 end 指定的区间不能超过 cap(slice) 范围
 
 	println("-----------------------------------------------------")
-	// NOTE append 触发 slice 扩容 (想想也不是操作系统或者是编译器守护slice扩容的)
-	var slx []int // NOTE 默认值为 nil
+	var slx []int
+	// NOTE 默认值为 nil, 可见指针类型 和 slice 和 map 和 chan 都可以认为是 引用类型,
+	// NOTE 换句话说 默认值 为nil的 类型都是引用类型
 	var sl1 []int = nil
+	// NOTE append 触发 slice 扩容 (想想也不是操作系统或者是编译器守护slice扩容的)
 	sl2 := append(sl1, 1)
 	fmt.Println(cap(sl1), len(sl1), cap(sl2), len(sl2), sl1, sl2, slx)
 	println(&sl1, &sl2)
