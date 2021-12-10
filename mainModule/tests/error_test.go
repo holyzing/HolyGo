@@ -336,18 +336,22 @@ func DeferErrorTest() {
 
 func TestPanicRecover(t *testing.T) {
 	println("--------------------------------------------")
-	funcB := func() error {
+	funcB := func() string {
 		println("funcB")
-		panic("foo")
+		if 2 > 1 {
+			panic("foo")
+		}
+		println("funcB before return")
+		return "dasd"
 		// return errors.New("success")  // unreachable code
 	}
 
-	funcA := func(err error) error {
+	funcA := func(err error) string {
 		println("funcA")
 		defer func() {
 			println("funcA defer")
 			if p := recover(); p != nil {
-				fmt.Printf("panic recover! p: %v", p)
+				fmt.Printf("panic recover! p: %v\n", p)
 				str, ok := p.(string)
 				if ok {
 					err = errors.New(str)
@@ -357,13 +361,14 @@ func TestPanicRecover(t *testing.T) {
 				debug.PrintStack()
 			}
 		}()
-		return funcB()
+		return funcB() // return 是非原子的
 	}
 
 	// 原因是panic异常处理机制不会自动将错误信息传递给error，所以要在funcA函数中进行显式的传递
 	var err error
-	err = funcA(err)
-	if err == nil {
+	res := funcA(err)
+	// ??? 如果在一个函数内遇到panic，在函数外部recover，则该函数最后的返回值会是它的零值
+	if res == "" {
 		fmt.Printf("err is nil\n")
 	} else {
 		fmt.Printf("err is %v\n", err)

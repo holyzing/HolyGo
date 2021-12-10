@@ -33,8 +33,6 @@ func (ft FuncType) ServerCb() error {
 	return nil
 }
 
-// NOTE var a interface{} = nil
-
 func TestType(t *testing.T) {
 	f := func(s string) {
 		fmt.Println("sss", s)
@@ -47,6 +45,7 @@ func TestType(t *testing.T) {
 	convertedInt := int64(defaultInt)
 	fmt.Println(reflect.TypeOf(convertedInt))
 
+	// 顶层类型
 	var AnyType interface{}
 	AnyType = 1
 	AnyType = 'a'
@@ -54,3 +53,5 @@ func TestType(t *testing.T) {
 	AnyType = [...]int{4, 6: 6}
 	fmt.Println(AnyType)
 }
+
+// TODO rune iota int

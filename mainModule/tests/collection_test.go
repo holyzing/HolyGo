@@ -31,6 +31,15 @@ func TestString(t *testing.T) {
 		fmt.Printf("%c", s[i])
 	}
 	println("\n---------------------------------------------------------")
+
+	var str interface{} = "怎么#就切不#开呢？"
+	switch strType := str.(type) {
+	case string:
+		subs := strings.Split(strType, "#")
+		fmt.Println("长度：", len(subs))
+	default:
+		fmt.Println("类型：", strType)
+	}
 }
 
 //NOTE Go语言中的数组

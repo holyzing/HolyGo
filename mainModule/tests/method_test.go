@@ -97,3 +97,14 @@ func TestMethod(t *testing.T) {
 	mark.SayHi()
 	sam.SayHi()
 }
+
+func TestBlockCode(t *testing.T) {
+	arr := [5]int{}
+	{
+		arr[0] = 2
+		var i int = 3
+		fmt.Println(i)
+	}
+	// 局部代码块限定局部变量的作用域
+	// fmt.Println(i)
+}
