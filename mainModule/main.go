@@ -64,7 +64,7 @@ func main() {
 	collects.Cao()
 	err := r.Run()
 	if err != nil {
-		return 
+		return
 	}
 }
 

@@ -31,6 +31,9 @@ import (
   虽然可以用 golang.org/x/net/context 包进行 goroutine 生命期深度控制，
   但这种方法仍然处于内部试验阶段，并不是官方推荐的特性。
   截止 Go 1.9 版本，暂时没有标准接口获取 goroutine 的 ID。
+
+
+  NOTE 当所有的协程处于阻塞的状态后, 所有协程会处于 asleep 状态,会引发运行时的 panic
 */
 
 /**

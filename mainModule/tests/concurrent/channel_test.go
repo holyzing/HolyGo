@@ -358,8 +358,9 @@ func TestOperateClosedChannel(t *testing.T) {
 	// NOTE：1. 非缓存通道关闭，不能发送数据
 	// unbufferedChannel <- 1  panic: send on closed channel
 	// NOTE：2. 非缓存通道关闭，可以接收数据，接收的数据是通道数据类型的零值
-	d := <-unbufferedChannel
-	fmt.Println(d)
+
+	// 非缓存chan的长度和容量始终为0,是因为在读取方准备好之后,运行时会将发送方的数据直接拷贝到接收方.
+	// 无论是写接收还是写发送都是可以的,但是对于非缓冲chan来说两种操作是强依赖的,都会阻塞所在协程.
 	println("---------------------------------------------------------------------")
 
 	bufferedChannel := make(chan int, 3)
@@ -398,3 +399,11 @@ func TestOperateClosedChannel(t *testing.T) {
 		fmt.Println(v, ok)
 	}
 }
+
+/**
+golang中分为值类型和引用类型
+	值类型分别有：int系列、float系列、bool、string、数组和结构体
+	引用类型有：指针、slice切片、管道channel、接口interface、map、函数等
+	值类型的特点是：变量直接存储值，内存通常在栈中分配
+	引用类型的特点是：变量存储的是一个地址，这个地址对应的空间里才是真正存储的值，内存通常在堆中分配
+*/

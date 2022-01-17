@@ -134,15 +134,16 @@ func TestTimeOperate(t *testing.T) {
 	// time.Sleep(d)
 
 	// TODO After
-	fmt.Println("第一个 after 2秒")
-	time.After(d)
-	fmt.Println("----------------------------------")
+	start := time.Now()
+	end := <-time.After(d)
+	fmt.Println(start, end)
+	println("---------------------------------------")
 
 	// NOTE Since | Until
-	start := time.Now()
 	fmt.Println(time.Since(start))
 	fmt.Println(time.Until(start))
 	fmt.Println(time.Until(time.Now()))
+	println("---------------------------------------")
 
 	// NOTE Add | Sub
 	dayDur := 24 * time.Hour

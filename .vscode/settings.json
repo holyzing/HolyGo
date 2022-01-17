@@ -1,3 +1,9 @@
 {
-    "go.useLanguageServer": false
+    "go.useLanguageServer": false,
+    "go.buildFlags": [
+        "-v",
+        "-count=1"
+    ],
+    "go.goroot": "/home/holyzing/snap/go1.16.7",
+    "go.gopath": "/home/holyzing/snap/go1.16.7/path",
 }
