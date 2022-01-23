@@ -237,18 +237,23 @@ func TestMap(t *testing.T) {
 	5- key 的类型必须是 comparable 的
 	*/
 
-	// NOTE 可变长的空集合的地址是不一样的,不可变长的空容器的地址是一样的
 	var slice []int
+	var ch chan int
 	var dict map[int]string
-	println(&slice, &dict)
+	println(&slice, &ch, &dict)
 	println("-------------------------------------------------------------------")
+	// NOTE 可变长的空集合的地址是不一样的,不可变长的空容器的地址是一样的
+	var arr = [...]int{}
+	var stru struct{}
+	println(&arr, &stru)
+	var arr2 [0]int
+	var stru2 struct{}
+	println(&arr2, &stru2)
+	println("-------------------------------------------------------------------")
+
 	rating := map[string]float32{"C": 5, "Go": 4.5, "Python": 4.5, "C++": 2}
 	fmt.Println(rating)
-
 	var countryCapitalMap map[string]string
-	var arr [0]int
-	var stru struct{}
-	println(len(countryCapitalMap), &countryCapitalMap, &arr, &stru)
 	// panic: assignment to entry in nil map [recovered]
 	// countryCapitalMap["a"] = "lulu"
 	countryCapitalMap = make(map[string]string)
@@ -258,29 +263,29 @@ func TestMap(t *testing.T) {
 	countryCapitalMap["Japan"] = "Tokyo"
 	countryCapitalMap["India"] = "New Delhi"
 
-	// NOTE key 访问
+	// key 访问
 	v := countryCapitalMap["Italy"]
 	fmt.Println(v)
 	v, ok := countryCapitalMap["Italy"]
 	fmt.Println(v, ok)
-	v, ok = countryCapitalMap["haha"] // string类型得到空字符串
-	fmt.Println(v, ok)
-	println("-------------------------------------------------------------------")
+	v, ok = countryCapitalMap["haha"]
+	fmt.Println(v == "", ok)          // NOTE 返回值类型的零值
 
-	// NOTE exist 检测
+	// exist 检测
 	captial, ok := countryCapitalMap["United States"]
 	if ok {
 		fmt.Println("Capital of United States is", captial)
 	} else {
 		fmt.Println("Capital of United States is not present")
 	}
+	println("-------------------------------------------------------------------")
 
-	// NOTE Key 遍历
+	// Key 遍历
 	for country := range countryCapitalMap {
 		fmt.Println("Capital of", country, "is", countryCapitalMap[country])
 	}
 
-	// NOTE Java Entry | Python Items 遍历
+	// Java Entry | Python Items 遍历
 	for key, value := range countryCapitalMap {
 		fmt.Println("key:", key, "value:", value)
 	}
@@ -292,10 +297,38 @@ func TestMap(t *testing.T) {
 	println("-------------------------------------------------------------------")
 
 	newCountryCapitalMap := countryCapitalMap
+	fmt.Println(countryCapitalMap)
+	newCountryCapitalMap["newInsert"] = "newInsert"
+	fmt.Println(countryCapitalMap, newCountryCapitalMap)
+
 	var newCountryCapitalMap2 map[string]string = countryCapitalMap
-	// newCountryCapitalMap3 = make()
-	fmt.Println(newCountryCapitalMap, newCountryCapitalMap2)
+
+	// NOTE 全是值拷贝,只不过底层数据结构的,指针变量指向的 "内存值" 没变  // [key] 操作符重载
+	println(&newCountryCapitalMap, &newCountryCapitalMap2, &countryCapitalMap)
 
 	// NOTE map不能使用==操作符进行比较。==只能用来检查map是否为空。
 	// 否则会报错：invalid operation: map1 == map2 (map can only be comparedto nil)
+}
+
+
+func TestMapPrinciple(t *testing.T) {
+	/**
+		数组：数组里的值指向一个链表
+		链表：目的解决hash冲突的问题，并存放键值
+
+	key
+	|      key通过hash函数得到key的hash    |
+	+------------------------------------+
+	|       key的hash通过取模或者位操作     |
+	|          得到key在数组上的索引        |
+	+------------------------------------+
+	|         通过索引找到对应的链表         |
+	+------------------------------------+
+	|       遍历链表对比key和目标key        |
+	+------------------------------------+
+	|              相等则返回value         |
+	+------------------+-----------------+
+	value
+*/
+
 }

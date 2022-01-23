@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"reflect"
 	"testing"
+	"time"
 )
 
 // NOTE 定义结构体
@@ -55,3 +56,18 @@ func TestType(t *testing.T) {
 }
 
 // TODO rune iota int
+
+
+// TODO 类型断言
+func TestTypeAssert(t *testing.T)  {
+	var i interface{} = 1
+	i2 := i.(int)  // WHAT 类型转换 ???
+	print(i2)
+
+	var i8 int8 = 63
+	print(int(i8))
+
+	// 1630001-01-01 00:00:00 +0000 UTC
+	var ti time.Time
+	fmt.Println(ti)
+}
