@@ -2,13 +2,11 @@ package advanced
 
 import (
 	"fmt"
-	"mainModule/collects"
 	"mainModule/tests"
 	"testing"
 )
 
 func TestPrivateOrPublic(t *testing.T) {
-	collects.Cao()
 	// NOTE 只能访问到结构体的公有的属性
 	se := tests.Second{}
 	fmt.Println(se.A)
@@ -123,7 +121,7 @@ func TestMakeNew(t *testing.T) {
 	slm := make([]int, 0)
 	mpm := make(map[string]int)
 
-	fmt.Println(chm, slm, mpm)
+	fmt.Println(chm, chm == nil, slm, slm == nil, mpm, mpm == nil)
 	fmt.Println(len(slm), cap(slm), len(mpm), len(chm), cap(chm))
 
 	// TODO 引出堆栈分配
