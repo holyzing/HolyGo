@@ -101,13 +101,13 @@ func ConfigSetup(path string) {
 	viper.SetConfigFile(path)
 	content, err := ioutil.ReadFile(path)
 	if err != nil {
-		fmt.Println(fmt.Sprintf("Read config file fail: %s", err.Error()))
+		fmt.Printf("Read config file fail: %s\n", err.Error())
 	}
 
 	//Replace environment variables
 	err = viper.ReadConfig(strings.NewReader(os.ExpandEnv(string(content))))
 	if err != nil {
-		fmt.Println(fmt.Sprintf("Parse config file fail: %s", err.Error()))
+		fmt.Printf("Parse config file fail: %s\n", err.Error())
 	}
 }
 

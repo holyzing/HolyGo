@@ -1,4 +1,4 @@
-package tests
+package abase
 
 // should not use dot imports (ST1001)go-staticcheck
 import (

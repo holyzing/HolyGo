@@ -1,4 +1,4 @@
-package tests
+package abase
 
 import (
 	"fmt"
@@ -269,7 +269,7 @@ func TestMap(t *testing.T) {
 	v, ok := countryCapitalMap["Italy"]
 	fmt.Println(v, ok)
 	v, ok = countryCapitalMap["haha"]
-	fmt.Println(v == "", ok)          // NOTE 返回值类型的零值
+	fmt.Println(v == "", ok) // NOTE 返回值类型的零值
 
 	// exist 检测
 	captial, ok := countryCapitalMap["United States"]
@@ -310,7 +310,6 @@ func TestMap(t *testing.T) {
 	// 否则会报错：invalid operation: map1 == map2 (map can only be comparedto nil)
 }
 
-
 func TestMapPrinciple(t *testing.T) {
 	/**
 		数组：数组里的值指向一个链表
@@ -329,6 +328,6 @@ func TestMapPrinciple(t *testing.T) {
 	|              相等则返回value         |
 	+------------------+-----------------+
 	value
-*/
+	*/
 
 }
