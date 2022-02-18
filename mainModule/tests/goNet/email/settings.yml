@@ -1,0 +1,61 @@
+script:
+  path: ./static/scripts
+settings:
+  application:
+    domain: localhost:8002
+    host: 0.0.0.0
+    ishttps: false
+    mode: dev
+    name: xxx-test
+    port: "8002"
+    readtimeout: 1
+    writertimeout: 2
+  database:
+    dbtype: mysql
+    host: 10.0.7.127
+    name: xxx-dev
+    password: root
+    port: 33060
+    username: root
+  domain:
+    gethost: 1
+    url: localhost:9527
+  email:
+    alias: xxxxxx
+    host: xxxxxx
+    pass: xxxx
+    port: 587
+    user: xxxx
+  gorm:
+    logmode: 0
+    maxidleconn: 0
+    maxopenconn: 20000
+  jwt:
+    secret: xxxx
+    timeout: 86400
+  ldap:
+    anonymousquery: 0
+    basedn: dc=fdevops,dc=com
+    bindpwd: 123456
+    binduserdn: cn=admin,dc=fdevops,dc=com
+    host: localhost
+    port: 389
+    tls: 0
+    userfield: uid
+  log:
+    compress: 1
+    consolestdout: 1
+    filestdout: 1
+    level: debug
+    localtime: 1
+    maxage: 30
+    maxbackups: 300
+    maxsize: 10240
+    path: ./logs/ferry.log
+  public:
+    islocation: 0
+  redis:
+    url: redis://10.0.7.127:6379
+  ssl:
+    key: keystring
+    pem: temp/pem.pem

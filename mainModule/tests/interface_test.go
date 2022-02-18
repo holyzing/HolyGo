@@ -83,7 +83,7 @@ func TestInterface(t *testing.T) {
 		面向对象世界中的接口的一般定义是“接口定义对象的行为”。它表示让指定对象应该做什么。
 		实现这种行为的方法(实现细节)是针对对象的.
 
-		在Go中，接口是一组方法签名。当类型为接口中的所有方法提供定义时，它被称为实现接口。
+		在Go中，接口是一组方法签名。当类型为接口中的 "NOTE 所有方法" 提供定义时，它被称为实现接口。
 		它与OOP非常相似。接口指定了类型应该具有的方法，类型决定了如何实现这些方法.
 		它把所有的具有共性的方法定义在一起，任何其他类型只要实现了这些方法就是实现了这个接口.
 		接口定义了一组方法，如果某个对象实现了某个接口的所有方法，则此对象就实现了该接口。
@@ -129,10 +129,11 @@ func TestInterface(t *testing.T) {
 
 		当一个接口类型作为函数参数时,意味着你可以提供多种实现了接口的类型.
 	*/
+	println("---------------------------------------------------------------------------")
 	var something Something = new(T)
 	var tt T
 	tt.M = 1
-	//  t.Controller.M = 1
+	// tt.Controller.M = 1
 	something.Get()
 }
 
@@ -186,6 +187,16 @@ func TestInterfaceAssert(t *testing.T) {
 	default:
 		fmt.Println("不是人")
 	}
+
+	type p struct{}
+
+	var pp interface{} = p{}
+
+	_, ok2 := pp.(*int) // 类型转换为一个整形的指针类型
+	print(ok2)
+
+	// ok1 := pp.(int) // 类型转换为一个整形
+	// print(ok1) 不接收第二个变量,如果转换失败,则直接panic
 }
 
 // NOTE Go语言中接口 关键字 type

@@ -7,7 +7,6 @@ import (
 	"time"
 )
 
-
 // 使用 select解决超时问题
 func TestSelectTimeout(t *testing.T) {
 	/*
@@ -76,7 +75,6 @@ func TestSelectTimeout(t *testing.T) {
 	}
 }
 
-
 // 使用select 模拟远程过程调用
 func TestSelectRpc(t *testing.T) {
 	/*
@@ -126,7 +124,6 @@ func TestSelectRpc(t *testing.T) {
 	}
 
 }
-
 
 // 通道响应计时器的事件
 func TestNewTimerNewTickerAfter(t *testing.T) {
@@ -179,7 +176,6 @@ StopHere:
 	fmt.Println("done")
 }
 
-
 // select 模拟生产者消费者模型
 func TestPCModel(t *testing.T) {
 	pump1 := func(ch chan int) {
@@ -195,6 +191,7 @@ func TestPCModel(t *testing.T) {
 	}
 
 	suck := func(ch1, ch2 chan int) {
+	forTag:
 		for {
 			select {
 			case v := <-ch1:
@@ -203,8 +200,8 @@ func TestPCModel(t *testing.T) {
 				fmt.Printf("Received on channel 1: %d\n", v)
 			case v := <-ch2:
 				fmt.Printf("Received on channel 2: %d\n", v)
-				// break 的是select 而不是 for
-				break
+				// 不加 fortag break 的是select 而不是 for
+				break forTag
 			}
 		}
 	}
@@ -216,6 +213,3 @@ func TestPCModel(t *testing.T) {
 	go suck(ch1, ch2)
 	time.Sleep(1e9)
 }
-
-
-

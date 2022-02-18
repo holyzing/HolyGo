@@ -94,15 +94,15 @@ func Player(name string, court chan int) {
 			return
 		}
 		// 选随机数，然后用这个数来判断我们是否丢球
-		n := rand.Intn(100)
+		n := rand.Intn(100) // TODO 每次运行生成的随机数是一样的
 		if n%13 == 0 {
-			fmt.Printf("Player %s Missed\n", name)
+			fmt.Printf("Player %s Missed value %d\n", name, n)
 			// 关闭通道，表示我们输了
 			close(court)
 			return
 		}
 		// 显示击球数，并将击球数加1
-		fmt.Printf("Player %s Hit %d\n", name, ball)
+		fmt.Printf("Player %s Hit %d value %d\n", name, ball, n)
 		ball++
 		// 将球打向对手
 		court <- ball
@@ -121,25 +121,47 @@ func TestUnBufferedChannelWithVR(t *testing.T) {
 
 		在通道内传递数据的过程是不会交出线程占用的。
 	*/
-	court := make(chan int)
-	// 计数加 2，表示要等待两个goroutine
-	wg.Add(2)
-	// 启动两个选手
-	go Player("Nadal", court)
-	go Player("Djokovic", court)
-	// 发球
-	court <- 1
-	// 等待游戏结束
-	wg.Wait()
 
-	println("-------------------------------------------------------------------------------------")
+	/*
+		court := make(chan int)
+		// 计数加 2，表示要等待两个goroutine
+		wg.Add(2)
+		// 启动两个选手
+		go Player("Nadal", court)
+		// time.Sleep(5*time.Second)
+		go Player("Djokovic", court)
+		// 发球
+		court <- 1
+		// 等待游戏结束
+		wg.Wait()
 
-	// 使用无缓存的通道模拟 接力比赛
-	wg.Add(1)
-	baton := make(chan int)
-	go Runner(baton)
-	baton <- 1
+		println("-------------------------------------------------------------------------------------")
+
+		// 使用无缓存的通道模拟 接力比赛
+		wg.Add(1)
+		baton := make(chan int)
+		go Runner(baton)
+		baton <- 1
+		wg.Wait()
+
+		println("-------------------------------------------------------------------------------------")
+	*/
+	ch := make(chan int)
+	wg.Add(10)
+	for i := range "0123456789" {
+		i := i
+		go func() {
+			// Loop variables captured by 'func' literals in 'go' statements might have unexpected values
+			println(i)
+			wg.Done()
+			ch <- i
+		}()
+	}
 	wg.Wait()
+	println("*****************************************************")
+	for i := range ch {
+		println(i)
+	}
 }
 
 // 缓存式的通道
@@ -180,14 +202,13 @@ func TestBufferedChannel(t *testing.T) {
 	// so,限制通道的长度利于约束数据提供方的供给速度,供给数据量必须在消费方处理量+通道长度的范围内,才能正常地处理数据。
 }
 
-
 // 操作已经关闭的channel
 func TestOperateClosedChannel(t *testing.T) {
 	unbufferedChannel := make(chan int)
 	fmt.Println("unbufferedChannel:", cap(unbufferedChannel), len(unbufferedChannel))
 	close(unbufferedChannel)
 	fmt.Println("unbufferedChannel:", cap(unbufferedChannel), len(unbufferedChannel))
-	res := <- unbufferedChannel
+	res := <-unbufferedChannel
 	fmt.Println(res)
 	// NOTE：1. 非缓存通道关闭，不能发送数据
 	// unbufferedChannel <- 1  panic: send on closed channel
@@ -199,10 +220,10 @@ func TestOperateClosedChannel(t *testing.T) {
 
 	bufferedChannel := make(chan int, 3)
 	fmt.Println("bufferedChannel:", cap(bufferedChannel), len(bufferedChannel))
-	bufferedChannel<-1      // 数据满则阻塞
+	bufferedChannel <- 1 // 数据满则阻塞
 	fmt.Println("bufferedChannel:", cap(bufferedChannel), len(bufferedChannel))
-	e := <-bufferedChannel  // 无数据会阻塞
-	fmt.Println("bufferedChannel:", cap(bufferedChannel), len(bufferedChannel))
+	e := <-bufferedChannel // 无数据会阻塞
+	fmt.Println("bufferedChannel:", e, cap(bufferedChannel), len(bufferedChannel))
 	// NOTE：3. 缓存通道关闭，不能发送数据
 	// bufferedChannel <- 1
 	// NOTE：4. 缓存通道关闭，可以接收数据，接收的数据是通道数据缓存的值，如果无缓存则是通道类型的零值

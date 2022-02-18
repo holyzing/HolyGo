@@ -1,4 +1,4 @@
-package GoOrm
+package orm
 
 // 有哪些锁
 // 什么时候会触发什么样的锁
