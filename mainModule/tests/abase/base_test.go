@@ -200,6 +200,8 @@ func TestTypeGo(t *testing.T) {
 	fmt.Println("rune:", len([]rune(str)))
 
 	// TODO 类型转换测试
+	r2 := rune(32)
+	fmt.Println(r2)
 
 }
 
