@@ -21,4 +21,5 @@
         "goimports": "/home/holyzing/snap/go1.16.7/path/bin/goimports",
         "gocode-gomod": "/home/holyzing/snap/go1.16.7/path/bin/gocode-gomod",
     },
+    "go.testTimeout": "100s"
 }

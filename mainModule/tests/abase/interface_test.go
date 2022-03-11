@@ -7,6 +7,11 @@ import (
 	"time"
 )
 
+type Men interface {
+	SayHi()
+	Sing(lyrics string)
+}
+
 type Human struct {
 	name  string
 	age   int
@@ -17,11 +22,6 @@ type Student struct {
 	school string
 	loan   float32
 }
-type Employee struct {
-	Human   //匿名字段
-	company string
-	money   float32
-}
 
 func (h Human) SayHi() {
 	fmt.Printf("Hi, I am %s you can call me on %s\n", h.name, h.phone)
@@ -31,13 +31,33 @@ func (h Human) Sing(lyrics string) {
 	fmt.Println("La la la la...", lyrics)
 }
 
-func (e Employee) SayHi() {
-	fmt.Printf("Hi, I am %s, I work at %s. Call me on %s\n", e.name, e.company, e.phone)
+// -------------------------------------------------------------------------------------------------
+
+// 函数实现接口
+// 类型 ????
+// 函数 结构体 接口 切片 同道 字典 字符串 数组
+
+type MyF func()
+
+type MyS struct{}
+
+type MyI interface{}
+
+type Myint int
+
+func (f MyF) SayHi() {
+	f()
 }
 
-type Men interface {
-	SayHi()
-	Sing(lyrics string)
+// -------------------------------------------------------------------------------------------------
+type Employee struct {
+	Human   //匿名字段
+	company string
+	money   float32
+}
+
+func (e Employee) SayHi() {
+	fmt.Printf("Hi, I am %s, I work at %s. Call me on %s\n", e.name, e.company, e.phone)
 }
 
 type Woman interface {
@@ -47,20 +67,20 @@ type Woman interface {
 }
 
 // -------------------------------------------------------------------------------------------------
-type Controller struct {
-	M int32
-}
-
 type Something interface {
 	Get()
 	Post()
+}
+
+type Controller struct {
+	M int32
 }
 
 func (c *Controller) Get() {
 	fmt.Print("GET")
 }
 
-func (c *Controller) Post() {
+func (c Controller) Post() {
 	fmt.Print("POST")
 }
 
@@ -68,13 +88,14 @@ type T struct {
 	Controller
 }
 
-func (t *T) Get() {
+func (t T) Get() {
 	//new(test.Controller).Get()
 	fmt.Print("T")
 }
-func (t *T) Post() {
-	fmt.Print("T")
-}
+
+// func (t *T) Post() {
+// 	fmt.Print("T")
+// }
 
 // -------------------------------------------------------------------------------------------------
 // NOTE Go语言中的接口
@@ -130,11 +151,89 @@ func TestInterface(t *testing.T) {
 		当一个接口类型作为函数参数时,意味着你可以提供多种实现了接口的类型.
 	*/
 	println("---------------------------------------------------------------------------")
-	var something Something = new(T)
+	// var s1 Something = Controller{}
+	var s1 Something = &Controller{}
+	var s2 Something = T{Controller{M: 10}}
+	var s3 Something = new(T)
+	var s4 *Something = &s1
+
+	// var s3 *Something = new(T)
+	// cannot use new(T) (type *T) as type *Something in assignment: *Something is pointer to interface, not interface
+
+	// s2.(T) 返回的是一个值的拷贝
+	if val, ok := s2.(T); ok {
+		println("M1:", val.M)
+		val.M = 11
+	}
+	// var wg sync.WaitGroup
+	// wg.Add(1)
+	go func(s Something) {
+		if val, ok := s2.(T); ok {
+			println("M2:", val.M)
+			val.M = 12
+		}
+		// wg.Done()
+	}(s2)
+	// wg.Wait()
+
+	if val, ok := s2.(T); ok {
+		println("M3:", val.M)
+	}
+
+	// 接口可以引用指针类型也可以引用值类型,但是将接口传递是可以 "视为值传递的", 他们指向的地址是一样的
+
+	// struct 实现接口的方法中,如果存在一个方法的实例参数是指针类型, 则该接口类型不能引用该struct的类型变量,只能引用指针类型变量
+
+	println(s1, s2, s3, s4)
+
+	// 子类可以定义和父类同名的成员方法和属性,实际调用时,根据具体实例去引用, 但是子类成员方法和父类实现接口的方法签名
+	// 一样时,会以子类成员方法为主判断子类是否实现了父类实现的接口
 	var tt T
 	tt.M = 1
 	// tt.Controller.M = 1
-	something.Get()
+
+	// NOTE 空接口引用的实例可以断言任意类型
+	// NOTE 一个非空接口引用的实例只能断言它的实现类型
+
+	// var ifa interface{}
+	// val, ok := ifa.(T)
+
+	// val, ok := s1.(Human)
+	val, ok := s1.(T)
+	fmt.Println(val, ok)
+
+	var c1 *Controller
+
+	// TODO 这种语法的起源是 ?? 意义是 ???
+
+	var sc1 = (Something)(tt)
+	var sc2 = (Something)(c1)
+
+	// var sc3 = (*Something)(tt)
+	// var sc4 = (*Something)(c1)
+	println(sc1, sc2)
+
+	c1 = (*Controller)(nil)
+	t1 := (*Human)(nil)
+	println("--------->", c1, &c1, t1, &t1)
+	// 0x0 nil 指针类型的零值
+
+	c1 = &Controller{}
+	println(c1)
+	c2 := Controller{}
+	c1.Get()
+	c1.Post()
+	c2.Get()
+	c2.Post()
+
+	var emptyStruct struct{} = struct{}{}
+	var emptyInterface interface{}
+	fmt.Println(emptyStruct)
+	emptyInterface = emptyStruct
+	println(emptyInterface)
+
+	// NOTE 阻塞主线程
+	select {}
 }
 
 /*

@@ -400,6 +400,8 @@ func TestCircleGo(t *testing.T) {
 		}
 		fmt.Println("index:", i, "num:", num)
 	}
+
+	// NOTE for - range 遍历元素,是对元素的拷贝, 即 赋值给新变量,对新变量的改变,不会影响到原变量,所以注意
 }
 
 // NOTE Go语言的goto

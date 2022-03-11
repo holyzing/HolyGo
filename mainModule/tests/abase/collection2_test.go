@@ -99,4 +99,13 @@ func TestMoreSlice(t *testing.T) {
 	fmt.Println(arr, ns1, ns2, ns3)
 	println("---------------------------------------------------------------------------------")
 
+	ss1 := make([]int, 1, 3)
+	fmt.Println(cap(ss1), len(ss1), ss1)
+
+	func(sp []int) {
+		a := append(sp, 1)
+		fmt.Println(cap(a), len(a), a)
+	}(ss1)
+	fmt.Println(cap(ss1), len(ss1), ss1)
+	fmt.Println(ss1[0:3])
 }

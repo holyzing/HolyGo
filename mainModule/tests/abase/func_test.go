@@ -222,6 +222,7 @@ func TestClosure(t *testing.T) {
 	fmt.Println(&res1)
 	println(&res1) // ??? 函数变量的地址 ？
 	println(res1)  // ??? 函数体的地址 ？
+	println("-----------------------------------------")
 	v1 := res1()
 	fmt.Println(v1) //1
 	v2 := res1()
@@ -230,11 +231,11 @@ func TestClosure(t *testing.T) {
 	fmt.Println(res1())
 	fmt.Println(res1())
 	fmt.Println(res1())
+	println("-----------------------------------------")
 
 	res2 := increment()
 	fmt.Println(&res2)
-	v3 := res2()
-	fmt.Println(v3) //1
+	fmt.Println(res2())
 	fmt.Println(res2())
 
 	fmt.Println(res1())
@@ -244,3 +245,20 @@ func TestClosure(t *testing.T) {
 // TODO 注意区分声明与定义，在Go语言中，函数内是不能声明函数的 ？？？？只能在函数能将一个函数定义为变量
 // TODO 线上出现Bug 之后如何定位Bug ？？？
 // https://zhuanlan.zhihu.com/p/159135741
+
+// -------------------------------------------------------------------------------------------------
+// Go-Kit EndPoint 闭包
+
+func aaa() (done func(), err error) {
+	return func() { print("aaa: done") }, nil
+}
+
+func bbb() (done func(), _ error) {
+	done, err := aaa()
+	return func() { print("bbb: surprise!"); done() }, err
+}
+
+func TestClosure2(t *testing.T) {
+	done, _ := bbb()
+	done()
+}

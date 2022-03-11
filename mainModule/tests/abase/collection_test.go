@@ -254,8 +254,9 @@ func TestMap(t *testing.T) {
 	rating := map[string]float32{"C": 5, "Go": 4.5, "Python": 4.5, "C++": 2}
 	fmt.Println(rating)
 	var countryCapitalMap map[string]string
-	// panic: assignment to entry in nil map [recovered]
+	print(countryCapitalMap)
 	// countryCapitalMap["a"] = "lulu"
+	// panic: assignment to entry in nil map [recovered]
 	countryCapitalMap = make(map[string]string)
 
 	countryCapitalMap["France"] = "Paris"
