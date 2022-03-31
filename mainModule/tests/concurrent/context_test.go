@@ -80,3 +80,7 @@ func TestContext(t *testing.T) {
 	<-ctx.Done()
 	fmt.Println("main", ctx.Err())
 }
+
+// NOTE context 对于 with_value 是线程安全的, 每次添加键值对都是以当前context作为父节点,衍生一个valueCtx节点,
+// 对于 获取键值是从底层开始, 层层向上,直到找到键,如果找不到就到 empty Context 返回 nil
+// 这只是说明with_value 是安全的, 但是context是没有提供 del 的

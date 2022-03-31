@@ -2,7 +2,7 @@
     "go.useLanguageServer": false,
     "go.buildFlags": [
         "-v",
-        "-count=1"
+        // "-count=1"
     ],
 
     // "go.inferGopath": false,
@@ -21,5 +21,5 @@
         "goimports": "/home/holyzing/snap/go1.16.7/path/bin/goimports",
         "gocode-gomod": "/home/holyzing/snap/go1.16.7/path/bin/gocode-gomod",
     },
-    "go.testTimeout": "100s"
+    "go.testTimeout": "100s",
 }

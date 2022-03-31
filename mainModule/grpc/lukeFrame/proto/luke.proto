@@ -1,0 +1,129 @@
+syntax = "proto3";
+
+package luke;  // protoc 生成gateway 时, 引用当前proto service 时的,前缀
+
+// option go_package="相对路径 ?";
+
+
+// protoc --go_out=plugins=grpc:. luke.proto
+
+// --go_out 使用的是 protoc-gen-go 插件
+// --go-grpc_out 使用的是 protoc-gen-go-grpc 插件
+// *_out 对应 protoc-gen-* 插件
+//
+
+// protoc  --go_out=./ --go-grpc_out=./ auth.proto
+// protoc --grpc-gateway_opt paths=source_relative --grpc-gateway_out ./gen/v1 --grpc-gateway_opt grpc_api_configuration=auth.yaml  auth.proto
+
+// 不同版本的 protoc 和 protoc-gen-go 生成的 golang源代码不一样
+option go_package="../proto";
+
+message ErrMsg {
+    string code = 1;
+    string message = 2;
+}
+
+enum JobStatus {
+    JOBSTATUSUNKNOW = 0;
+    IN_PREP = 1;
+    IN_QUEUE = 2;
+    STARTING = 3;
+    RUNNING = 4;
+    DONE = 5;
+    HALTED = 101;
+    ABORTED = 102;
+    FAILED = 103;
+    ERROR = 104;
+    TERMINATED = 105;
+    MAINTENANCE = 106;
+    IMAGE_ERROR = 107;
+    FAULT = 108;
+    EVICTED = 109;
+}
+
+enum Retcode {
+    UNKNOW = 0;
+    OK = 200;
+    CREATED = 201;
+    ACCEPTED = 202;
+    NOT_MODEFIED = 304;
+    BAD_REQUEST = 400;
+    UNAUTHORIZED = 401;
+    FORBIDDEN = 403;
+    NOT_FOUND = 404;
+    METHOD_NOT_ALLOWED = 405;
+    TEAPOT = 418;
+    INTERNAL_ERROR = 500;
+}
+
+
+message JobRunTime {
+    JobStatus status = 1;
+    int64 time_stamp = 2;
+}
+
+message GetJobRequest {
+    string user = 1;
+    int64 id = 3;
+    string handle = 4;
+    repeated string fields = 5;
+    bool combined = 6;
+}
+
+message CreateJobRequest {
+    bool sync = 1;
+    string user = 2;
+    int32 cores = 3;
+    float sys_prio = 4;
+    JobStatus status = 5;
+    repeated string entrypoint = 6;
+    map<string, string> options = 7;
+}
+
+message BatchCreateJobsRequest {
+    repeated CreateJobRequest jobs = 1;
+}
+
+
+message JobInfoResponse {
+    string job_handle = 2 [json_name="job_handle"];
+    int64 job_id = 1 [json_name="job_id"];
+    JobRunTime job_runtime = 3;
+    string info = 4;
+}
+
+message JobDetailResponse {
+    repeated CreateJobRequest job_details = 1;
+}
+
+message LukeRequest {
+    string method = 1;
+    string user = 2;
+    string organization = 3;
+    string tenant_name = 4;
+    oneof body {
+        CreateJobRequest create_request = 6;
+        BatchCreateJobsRequest batch_create_request = 7;
+        GetJobRequest get_request = 8;
+    }
+}
+
+message LukeResponse {
+    Retcode retcode = 1;
+    ErrMsg error = 2;
+    string request_id = 3 [json_name="requestID"];
+    oneof body {
+        string info = 4;
+        JobInfoResponse job_info = 5;
+        JobDetailResponse job_details = 6;
+    }
+}
+
+service LukeService {
+    rpc JobWrite (LukeRequest) returns (LukeResponse);
+    rpc JobRead (LukeRequest) returns (LukeResponse);
+}
+
+
+// https://www.cnblogs.com/whuanle/p/14588031.html
+// https://zhuanlan.zhihu.com/p/359968500

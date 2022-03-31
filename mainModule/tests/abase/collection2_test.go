@@ -2,6 +2,7 @@ package abase
 
 import (
 	"fmt"
+	"strings"
 	"testing"
 )
 
@@ -108,4 +109,18 @@ func TestMoreSlice(t *testing.T) {
 	}(ss1)
 	fmt.Println(cap(ss1), len(ss1), ss1)
 	fmt.Println(ss1[0:3])
+}
+
+func TestMoreMap(t *testing.T) {
+	var m map[string]string = map[string]string{"a": "a"}
+	fmt.Println("=====", m["b"] == "")
+	val, ok := m["b"]
+	if ok {
+		fmt.Println(val)
+	}
+	fmt.Println(strings.EqualFold("a", "A"))
+	// NOTE As a special case, it is legal to append a string to a byte slice, like this:
+	// slice = append([]byte("hello "), "world"...)
+	fmt.Println(([]byte)("a"))
+	bs :=
 }
