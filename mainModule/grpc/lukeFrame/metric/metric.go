@@ -39,10 +39,6 @@ var (
 	metricRegisterOnce sync.Once
 )
 
-type router struct {
-	httprouter.Router
-}
-
 type ResponseWriter interface {
 	http.ResponseWriter
 	http.Flusher
@@ -61,16 +57,6 @@ type ResponseWriter interface {
 // BeforeFunc is a function that is called before the ResponseWriter has been written to.
 type BeforeFunc func(ResponseWriter)
 
-// NewResponseWriter creates a ResponseWriter that wraps an http.ResponseWriter
-func NewResponseWriter(rw http.ResponseWriter) ResponseWriter {
-	newRw := responseWriter{rw, 0, 0, nil}
-	return &newRw
-}
-
-func (rw *responseWriter) Before(before BeforeFunc) {
-	rw.beforeFuncs = append(rw.beforeFuncs, before)
-}
-
 type responseWriter struct {
 	http.ResponseWriter
 	status      int
@@ -78,12 +64,7 @@ type responseWriter struct {
 	beforeFuncs []BeforeFunc
 }
 
-func (rw *responseWriter) WriteHeader(s int) {
-	rw.callBefore()
-	rw.ResponseWriter.WriteHeader(s)
-	rw.status = s
-}
-
+// ----------------------------http.ResponseWriter------------------------------------------
 func (rw *responseWriter) Write(b []byte) (int, error) {
 	if !rw.Written() {
 		// The status will be StatusOK if WriteHeader has not been called yet
@@ -94,18 +75,23 @@ func (rw *responseWriter) Write(b []byte) (int, error) {
 	return size, err
 }
 
-func (rw *responseWriter) Status() int {
-	return rw.status
+func (rw *responseWriter) WriteHeader(s int) {
+	for i := len(rw.beforeFuncs) - 1; i >= 0; i-- {
+		rw.beforeFuncs[i](rw)
+	}
+	rw.ResponseWriter.WriteHeader(s)
+	rw.status = s
 }
 
-func (rw *responseWriter) Size() int {
-	return rw.size
+// ----------------------------http.Flusher------------------------------------------
+func (rw *responseWriter) Flush() {
+	flusher, ok := rw.ResponseWriter.(http.Flusher)
+	if ok {
+		flusher.Flush()
+	}
 }
 
-func (rw *responseWriter) Written() bool {
-	return rw.status != 0
-}
-
+// ----------------------------http.Hijacker------------------------------------------
 func (rw *responseWriter) Hijack() (net.Conn, *bufio.ReadWriter, error) {
 	hijacker, ok := rw.ResponseWriter.(http.Hijacker)
 	if !ok {
@@ -114,22 +100,33 @@ func (rw *responseWriter) Hijack() (net.Conn, *bufio.ReadWriter, error) {
 	return hijacker.Hijack()
 }
 
-func (rw *responseWriter) callBefore() {
-	for i := len(rw.beforeFuncs) - 1; i >= 0; i-- {
-		rw.beforeFuncs[i](rw)
-	}
+// ----------------------------ResponseWriter------------------------------------------
+func (rw *responseWriter) Status() int {
+	return rw.status
 }
 
-func (rw *responseWriter) Flush() {
-	flusher, ok := rw.ResponseWriter.(http.Flusher)
-	if ok {
-		flusher.Flush()
-	}
+func (rw *responseWriter) Written() bool {
+	return rw.status != 0
+}
+
+func (rw *responseWriter) Size() int {
+	return rw.size
+}
+
+func (rw *responseWriter) Before(before BeforeFunc) {
+	rw.beforeFuncs = append(rw.beforeFuncs, before)
+}
+
+// ------------------------------------------------------------------------------------
+type router struct {
+	httprouter.Router
 }
 
 func HandlerWrapper(path string, next http.Handler) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		d := NewResponseWriter(w)
+		// creates a ResponseWriter that wraps an http.ResponseWriter
+		d := &responseWriter{w, 0, 0, nil}
+
 		now := time.Now()
 		next.ServeHTTP(d, r)
 		requestCounter.With(

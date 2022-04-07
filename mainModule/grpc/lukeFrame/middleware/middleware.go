@@ -63,6 +63,7 @@ func parseAccessToken(ctx context.Context) (string, error) {
 
 var LoggingMiddleware LabeledMiddleware = func(name string, endpoint endpoint.Endpoint) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
+		println("---- middlewares LoggingMiddleware ----")
 		start := time.Now()
 		transport := ctx.Value("transport")
 

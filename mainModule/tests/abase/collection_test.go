@@ -40,6 +40,13 @@ func TestString(t *testing.T) {
 	default:
 		fmt.Println("类型：", strType)
 	}
+
+	// TODO RUNE type == int8
+	s1 := 'a'
+	s2 := "a"
+	s3 := `a`
+	fmt.Println(s1, s2, s3)
+
 }
 
 //NOTE Go语言中的数组

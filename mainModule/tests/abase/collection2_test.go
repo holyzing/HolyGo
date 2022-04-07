@@ -122,5 +122,4 @@ func TestMoreMap(t *testing.T) {
 	// NOTE As a special case, it is legal to append a string to a byte slice, like this:
 	// slice = append([]byte("hello "), "world"...)
 	fmt.Println(([]byte)("a"))
-	bs :=
 }

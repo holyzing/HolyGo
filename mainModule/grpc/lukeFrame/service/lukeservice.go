@@ -18,6 +18,7 @@ func (*LukeService) JobWrite(context.Context, *pb.LukeRequest) (*pb.LukeResponse
 }
 
 func (LukeService) JobRead(context.Context, *pb.LukeRequest) (*pb.LukeResponse, error) {
+	println("---- LukeService JobRead ----")
 	var (
 		err  error
 		resp pb.LukeResponse
@@ -27,7 +28,7 @@ func (LukeService) JobRead(context.Context, *pb.LukeRequest) (*pb.LukeResponse, 
 
 var lukeService LukeService
 
-// 接口类型是不能指针的, 而且接口类型的变量不能取地址, 接口本身是一个引用类型
+// GetDefaultLukeService 接口类型是不能指针的, 而且接口类型的变量不能取地址, 接口本身是一个引用类型
 func GetDefaultLukeService() pb.LukeServiceServer {
 	return &lukeService
 }
@@ -42,7 +43,7 @@ func NewLukeService() pb.LukeServiceServer {
 
 // -------------------------------------------------------------------------------
 
-// 可以对Service 中的 属性进一步封装, 注意属性可以是一个函数
+// WrapService 可以对Service 中的 属性进一步封装, 注意属性可以是一个函数
 func WrapService(lukeService pb.LukeServiceServer) pb.LukeServiceServer {
 	return lukeService
 }

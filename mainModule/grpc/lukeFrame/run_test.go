@@ -1,4 +1,4 @@
-package lukeFrame
+package lukeframe
 
 import (
 	"log"
@@ -25,17 +25,18 @@ func TestRun(t *testing.T) {
 	service := service.GetDefaultLukeService()
 	endpoint := endpoint.NewLukeEndpointWithService(service)
 
-	go RunHttpServer(errc, endpoint)
-
+	// go RunHttpServer(errc, endpoint)
+	go RunMetricsServer(errc)
+	go RunGrpcServer(errc, endpoint)
 	// Run!
 	log.Println("exit", <-errc)
 }
 
-func RunHttpServer(errc chan error, endpoints endpoint.LukeEndPoints) {
+func RunHTTPServer(errc chan error, endpoints endpoint.LukeEndPoints) {
 	log.Println("transport", "HTTP")
 	h := transport.MakeHTTPHandler(endpoints)
 
-	errc <- http.ListenAndServe("10.240.2.137:8080", h)
+	errc <- http.ListenAndServe("10.240.2.127:8080", h)
 }
 
 func RunGrpcServer(errc chan error, endpoints endpoint.LukeEndPoints) {
@@ -52,12 +53,18 @@ func RunGrpcServer(errc chan error, endpoints endpoint.LukeEndPoints) {
 	srv := transport.MakeGRPCServer(endpoints)
 	pb.RegisterLukeServiceServer(s, srv)
 
-	ln, err := net.Listen("tcp", "10.240.2.137:9090")
+	// TODO 这是要干啥呢 ????
+	// reflection.Register(s)
+
+	ln, err := net.Listen("tcp", "10.240.2.127:9090")
 	if err != nil {
 		errc <- err
 		return
 	}
 	errc <- s.Serve(ln)
+
+	// 微服务注册: 服务名称 服务地址 有哪些方法 ?
+	// 微服务发现: 服务名称 去获取服务地址
 }
 
 // prometheus metrics
@@ -65,5 +72,7 @@ func RunMetricsServer(errc chan error) {
 	log.Println("transport", "metrics")
 	h := http.NewServeMux()
 	h.Handle("/metrics", promhttp.Handler())
-	errc <- http.ListenAndServe("10.240.2.137:7070", h)
+	errc <- http.ListenAndServe("10.240.2.127:7070", h)
 }
+
+// H_Invincible_L

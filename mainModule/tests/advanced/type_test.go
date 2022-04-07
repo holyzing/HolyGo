@@ -83,6 +83,7 @@ type S1 struct {
 }
 
 type S2 struct {
+	I
 }
 
 func (S1) show(s string) {
@@ -100,19 +101,27 @@ func (s1 *S1) SetAge(age int) {
 // -------------------------------------------------------
 
 func (c *S2) show(s string) {
-	println("show *s2", c)
+	println("show *s2", s, c)
 }
 
 func (c S2) say(a int) {
-	println("say *s2", &c)
+	println("say s2", a, &c)
 }
 
 func TestInterfaceWithCommonTypeOrPointerType(t *testing.T) {
 	var (
 		i1 I = S1{}
-		i2 I = &S2{}
+		i2 I = &S2{i1}
 		i3 I
 	)
+	i2.show("a")
+	i2.say(0)
+	ss := i2.(*S2)
+	ss.show("b")
+	ss.say(1)
+	ss.I.show("c")
+	ss.I.say(2)
+	println("----------------------------------")
 
 	println(i1 == i2, i3 == nil, (I)(nil))
 
@@ -136,3 +145,5 @@ func TestInterfaceWithCommonTypeOrPointerType(t *testing.T) {
 	f1(f2())
 
 }
+
+// TODO struct 的接口实现和继承接口, 以及继承结构体

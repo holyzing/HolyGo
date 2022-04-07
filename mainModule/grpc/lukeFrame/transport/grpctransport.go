@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"mainModule/grpc/lukeFrame/endpoint"
-	"mainModule/grpc/lukeFrame/types"
 	"net/http"
 
 	pb "mainModule/grpc/lukeFrame/proto"
@@ -74,7 +73,7 @@ func DecodeLukeRequestFunc(_ context.Context, req interface{}) (request interfac
 	return
 }
 
-// EncodeGRPCGenericResponse is a transport/grpc.EncodeResponseFunc that converts a
+// EncodeLukeResponseFunc is a transport/grpc.EncodeResponseFunc that converts a
 // user-domain generic response to a gRPC generic reply. Primarily useful in a server.
 func EncodeLukeResponseFunc(_ context.Context, response interface{}) (interface{}, error) {
 	resp := response.(*pb.LukeResponse)
@@ -87,8 +86,10 @@ func metadataToContext(ctx context.Context, md metadata.MD) context.Context {
 			// The key is added both in metadata format (k) which is all lower
 			// and the http.CanonicalHeaderKey of the key so that it can be
 			// accessed in either format
-			ctx = context.WithValue(ctx, types.LukeString(k), v[0])
-			ctx = context.WithValue(ctx, types.LukeString(http.CanonicalHeaderKey(k)), v[0])
+
+			// go-staticcheck ignore
+			ctx = context.WithValue(ctx, k, v[0])
+			ctx = context.WithValue(ctx, http.CanonicalHeaderKey(k), v[0])
 		}
 	}
 
