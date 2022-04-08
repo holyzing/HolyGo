@@ -100,6 +100,23 @@ func redress(l int, err error) {
 	fmt.Println("参数输出的长度为", l)
 }
 
+func returnFunc(a, b int) (c, d string) {
+	defer func() {
+		println("1", a, b, c, d)
+
+	}()
+	c, d = "c", "d"
+
+	defer func() {
+		println("2", a, b, c, d)
+	}()
+
+	return func() (string, string) {
+		println(c, d)
+		return "cc", "dd"
+	}()
+}
+
 // NOTE Go 语言中的延迟
 func TestDefer(t *testing.T) {
 	// NOTE 延迟到某个动作(比如 return) 后执行.
@@ -112,6 +129,9 @@ func TestDefer(t *testing.T) {
 	*/
 
 	// NOTE IO 操作最后才会执行 资源关闭等操作
+
+	println(returnFunc(1, 2))
+	println("------------------------------------------")
 
 	a, b := 1, "a"
 	defer println(a)
@@ -157,6 +177,8 @@ func TestDefer(t *testing.T) {
 		defer fmt.Printf("%c", v)
 	}
 }
+
+// ----------------------------------------------------------
 
 func func4(i int, fc func(int, int) (int, string)) (int, string) {
 	// THINK 函数式编程，在函数内部是不能声明函数的 ？？？

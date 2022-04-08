@@ -1,13 +1,19 @@
 package lukeframe
 
 import (
+	"fmt"
 	"log"
 	"mainModule/grpc/lukeFrame/endpoint"
 	"mainModule/grpc/lukeFrame/service"
+	"mainModule/grpc/lukeFrame/trace"
 	"mainModule/grpc/lukeFrame/transport"
 	"net"
 	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
 	"testing"
+	"time"
 
 	pb "mainModule/grpc/lukeFrame/proto"
 
@@ -20,6 +26,16 @@ const (
 	maxMsgSize = 1024 * 1024 * 20
 )
 
+func InterruptHandler(errc chan<- error) {
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, syscall.SIGINT, syscall.SIGTERM)
+	terminateError := fmt.Errorf("%s", <-c)
+
+	// Place whatever shutdown handling you want here
+
+	errc <- terminateError
+}
+
 func TestRun(t *testing.T) {
 	errc := make(chan error)
 	service := service.GetDefaultLukeService()
@@ -28,8 +44,14 @@ func TestRun(t *testing.T) {
 	// go RunHttpServer(errc, endpoint)
 	go RunMetricsServer(errc)
 	go RunGrpcServer(errc, endpoint)
+	go InterruptHandler(errc)
 	// Run!
-	log.Println("exit", <-errc)
+	<-errc
+	println("--------------------> closing tracer ")
+	trace.TracerCloser.Close()
+	time.Sleep(5*time.Second)
+	println("--------------------> tracer closed !")
+	log.Println("exit")
 }
 
 func RunHTTPServer(errc chan error, endpoints endpoint.LukeEndPoints) {

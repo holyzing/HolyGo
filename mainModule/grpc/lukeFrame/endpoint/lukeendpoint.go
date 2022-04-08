@@ -3,6 +3,7 @@ package endpoint
 import (
 	"context"
 	"fmt"
+	"mainModule/grpc/lukeFrame/trace"
 	"reflect"
 
 	"mainModule/grpc/lukeFrame/middleware"
@@ -122,5 +123,9 @@ func NewLukeEndpointWithService(service pb.LukeServiceServer) LukeEndPoints {
 	lukeendpoint.WrapEndpointsWithMiddleware(middleware.Auth0Middleware)
 	lukeendpoint.WrapEndpointsWithLabelMiddleware(middleware.LoggingMiddleware)
 
+	lukeendpoint.JobReadEndPoint = middleware.LabeleMiddlewareWithTracer(trace.OtTracer)("JobReadEndPoint", lukeendpoint.JobReadEndPoint)
+	lukeendpoint.JobWriteEndPoint = middleware.LabeleMiddlewareWithTracer(trace.OtTracer)("JobWriteEndPoint", lukeendpoint.JobWriteEndPoint)
+
+	// in.WrapAllExcept(opentracing.TraceServer(trace.OtTracer, "Generic"), "Admin")
 	return lukeendpoint
 }

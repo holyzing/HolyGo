@@ -12,7 +12,7 @@ import (
 )
 
 func NewGRPCClient(conn *grpc.ClientConn, options ...grpctransport.ClientRequestFunc) Set {
-	var clientOptions = []grpctransport.ClientOption{}
+	var clientOptions []grpctransport.ClientOption
 
 	for _, option := range options {
 		clientOptions = append(clientOptions, grpctransport.ClientBefore(option))

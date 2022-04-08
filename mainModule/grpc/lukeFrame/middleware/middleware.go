@@ -3,6 +3,8 @@ package middleware
 import (
 	"context"
 	"fmt"
+	gokitOt "github.com/go-kit/kit/tracing/opentracing"
+	otg "github.com/opentracing/opentracing-go"
 	"net"
 	"strings"
 	"time"
@@ -113,5 +115,11 @@ var LoggingMiddleware LabeledMiddleware = func(name string, endpoint endpoint.En
 			resp = response
 		}
 		return resp, err
+	}
+}
+
+var LabeleMiddlewareWithTracer = func(tracer otg.Tracer) LabeledMiddleware {
+	return func(name string, in endpoint.Endpoint) endpoint.Endpoint {
+		return gokitOt.TraceServer(tracer, name)(in)
 	}
 }

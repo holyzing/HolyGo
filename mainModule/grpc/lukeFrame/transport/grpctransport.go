@@ -3,7 +3,10 @@ package transport
 import (
 	"context"
 	"fmt"
+	"github.com/go-kit/kit/log/logrus"
+	"github.com/go-kit/kit/tracing/opentracing"
 	"mainModule/grpc/lukeFrame/endpoint"
+	"mainModule/grpc/lukeFrame/trace"
 	"net/http"
 
 	pb "mainModule/grpc/lukeFrame/proto"
@@ -38,7 +41,7 @@ func MakeGRPCServer(endpoints endpoint.LukeEndPoints) pb.LukeServiceServer {
 	serverOptions := []grpctransport.ServerOption{
 		grpctransport.ServerBefore(
 			metadataToContext,
-			// opentracing.GRPCToContext(trace.OtTracer, "MakeGRPCServer", log.KLog)
+			opentracing.GRPCToContext(trace.OtTracer, "MakeGRPCServer", logrus.Logger{}),
 		),
 	}
 	return &grpcServer{

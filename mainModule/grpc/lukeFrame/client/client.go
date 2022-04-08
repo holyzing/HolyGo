@@ -3,16 +3,18 @@ package client
 import (
 	"context"
 	"fmt"
+	"github.com/uber/jaeger-client-go"
+	"io"
 	"mainModule/grpc/lukeFrame/client/transport"
 	"os"
 	"strings"
 	"time"
 
 	"github.com/go-kit/kit/endpoint"
-	"github.com/go-kit/kit/tracing/opentracing"
+	gokitOt "github.com/go-kit/kit/tracing/opentracing"
 	"github.com/go-kit/log"
-	stdopentracing "github.com/opentracing/opentracing-go"
-	"github.com/uber/jaeger-client-go/config"
+	otg "github.com/opentracing/opentracing-go"
+	jgc "github.com/uber/jaeger-client-go/config"
 	"google.golang.org/grpc"
 )
 
@@ -20,7 +22,7 @@ import (
 const (
 	ServiceName  = "luke-service" // Name of service.
 	ServiceProxy = "envoy"        // TODO 服务发现, 注册代理 ???
-	EndpointsID  = ServiceName    // ID to lookup a service endpoint with.
+	// EndpointsID  = ServiceName    // ID to lookup a service endpoint with.
 	maxMsgSize   = 20 * 1024 * 1024
 )
 
@@ -43,7 +45,7 @@ type Option struct {
 	Log         Logger
 }
 
-func (o *Option) GetRequestMetadata(ctx context.Context, _ ...string) (map[string]string, error) {
+func (o *Option) GetRequestMetadata(_ context.Context, _ ...string) (map[string]string, error) {
 	md := make(map[string]string)
 	md["access_token"] = o.AccessToken
 	return md, nil
@@ -164,7 +166,9 @@ func (o *Option) Init() {
 type Luke struct {
 	transport.Set
 	option Option
-	tracer stdopentracing.Tracer
+	tracer otg.Tracer
+
+	tracerCloser io.Closer
 }
 
 // New init client
@@ -178,7 +182,7 @@ func New(opts ...Option) *Luke {
 	opt := new(Option)
 	opt.MergeIn(opts...)
 	opt.Init()
-	otTracer := NewTracer(opt.Log)
+	otTracer, tracerCloser := NewTracer(opt.Log)
 
 	switch opt.Scheme {
 	// case "http", "https":
@@ -193,7 +197,8 @@ func New(opts ...Option) *Luke {
 			grpc.WithInsecure(),
 			//lint:ignore SA1019 建议的类型不准确
 			grpc.WithTimeout(10 * time.Second),
-
+			// https://github.com/grpc-ecosystem/grpc-opentracing
+			// grpc.WithUnaryInterceptor(otgrpc.OpenTracingClientInterceptor(stdopentracing.GlobalTracer())),
 			grpc.WithDefaultCallOptions(
 				grpc.MaxCallRecvMsgSize(maxMsgSize),
 				grpc.MaxCallSendMsgSize(maxMsgSize),
@@ -207,28 +212,28 @@ func New(opts ...Option) *Luke {
 		}
 		conn, err := grpc.Dial(opt.Addr, opts...)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "error: %v", err)
+			fmt.Println(fmt.Fprintf(os.Stderr, "error: %v", err))
 			os.Exit(1)
 		}
 
 		svc = transport.NewGRPCClient(conn,
-			opentracing.ContextToGRPC(otTracer, log.NewNopLogger()),
+			gokitOt.ContextToGRPC(otTracer, log.NewNopLogger()),
 			// transport.SessionGRPCMetadata(session),
 		)
 	default:
 		panic("not support")
 	}
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "error: %v\n", err)
+		fmt.Println(fmt.Fprintf(os.Stderr, "error: %v\n", err))
 		os.Exit(1)
 	}
 
-	luke := &Luke{Set: svc, tracer: otTracer, option: *opt}
+	luke := &Luke{Set: svc, tracer: otTracer, option: *opt, tracerCloser: tracerCloser}
 	luke.Set = luke.WrapEndpoints(svc)
 	return luke
 }
 
-func NewTracer(log Logger) stdopentracing.Tracer {
+func NewTracer(log Logger) (otg.Tracer, io.Closer) {
 	var err error
 	//var closer io.Closer
 	jaegerHost := os.Getenv("JAEGER_AGENT_HOST")
@@ -237,38 +242,36 @@ func NewTracer(log Logger) stdopentracing.Tracer {
 		jaegerHost = "10.240.2.81"
 	}
 	if jaegerPort == "" {
-		jaegerPort = "5775"
+		jaegerPort = "6831"
 	}
 	// fmt.Println("Jarger Addr:", jaegerHost)
 	addr := fmt.Sprintf("%s:%s", jaegerHost, jaegerPort)
-	cfg := config.Configuration{
+	cfg := jgc.Configuration{
 		ServiceName: ServiceName,
-		Sampler: &config.SamplerConfig{
-			Type:  "const",
+		Sampler: &jgc.SamplerConfig{
+			Type:  jaeger.SamplerTypeConst,
 			Param: 1,
 		},
-		Reporter: &config.ReporterConfig{
+		Reporter: &jgc.ReporterConfig{
 			LogSpans:            true,
 			BufferFlushInterval: 1 * time.Second,
 			LocalAgentHostPort:  addr,
 		},
 	}
-	otTracer, _, err := cfg.NewTracer(
-	//config.Metrics(metrics.NullFactory),
-	)
-	if log != nil {
-		otTracer, _, err = cfg.NewTracer(
-			config.Logger(log),
-			//config.Metrics(metrics.NullFactory),
-		)
+	if log == nil {
+		log = jaeger.StdLogger
 	}
+	otTracer, tracerCloser, err := cfg.NewTracer(
+		jgc.Logger(log),
+	// jgc.Metrics(metrics.NullFactory),
+	)
 	if err != nil {
 		panic(err)
 	}
-	stdopentracing.SetGlobalTracer(otTracer)
-	otTracer.StartSpan("CCCC")
-	//defer closer.Close()
-	return otTracer
+	otg.SetGlobalTracer(otTracer)
+	// defer closer.Close()
+
+	return otTracer, tracerCloser
 }
 
 // WrapEndpoints accepts the service's entire collection of endpoints, so that a
@@ -278,9 +281,9 @@ func NewTracer(log Logger) stdopentracing.Tracer {
 // Note that the final middleware wrapped will be the outermost middleware
 // (i.e. applied first)
 
-var labeleMiddlewareWithTracer = func(tracer stdopentracing.Tracer) transport.LabeledMiddleware {
+var labeleMiddlewareWithTracer = func(tracer otg.Tracer) transport.LabeledMiddleware {
 	return func(name string, in endpoint.Endpoint) endpoint.Endpoint {
-		return opentracing.TraceClient(tracer, name)(in)
+		return gokitOt.TraceClient(tracer, name)(in)
 	}
 }
 
