@@ -1,0 +1,461 @@
+// In general, while you can use proto2 (the current default protocol buffers
+// version), we recommend that you use proto3 with gRPC as it lets you use the
+// full range of gRPC-supported languages, as well as avoiding compatibility
+// issues with proto2 clients talking to proto3 servers and vice versa.
+syntax = "proto3";
+
+// The package name determines the name of the directories that truss creates
+// for `package echo;` truss will create the directory "echo-service".
+package truss;
+
+import "annotations.proto";
+
+// service CmdService {
+//     // CmdSubmit is rabbitmq cmd
+//     rpc CmdSubmit (LouderRequest) returns (CommandResqonse) {
+//         option (google.api.http) = {
+//         post: "/v1/cmd"
+//         };
+//     }
+// }
+
+service LukeService {
+    rpc Admin (LukeRequest) returns (LukeResponse) {
+        option (google.api.http) = {
+        get: "/v1/luke/admin"
+        body: "*"
+        };
+    }
+    // ListUser     CommonListRequest   CommonListResqonse
+    // CheckKey     CheckKeyRequest     CheckKeyResponse
+
+    rpc Instrument (LukeRequest) returns (LukeResponse) {
+        option (google.api.http) = {
+        get: "/v1/luke/metrics/cluster/:cluster/status/:status"
+        body: "*"
+        };
+    }
+    // CreateUser   CreateUserRequest   CreateUserResponse
+
+    rpc Generic (LukeRequest) returns (LukeResponse) {
+        option (google.api.http) = {
+        post: "/v1/luke"
+        body: "*"
+        };
+    }
+    // CreateKey    CreateKeyRequest    CreateKeyResponse
+    // ListKey      CommonListRequest   CommonListResqonse
+}
+
+//////////////////////////////////
+
+enum JobStatus {
+    JOBSTATUSUNKNOW = 0;
+    IN_PREP = 1;
+    IN_QUEUE = 2;
+    STARTING = 3;
+    RUNNING = 4;
+    DONE = 5;//
+    HALTED = 101;
+    ABORTED = 102;//
+    FAILED = 103;
+    ERROR = 104;
+    TERMINATED = 105;//
+    FAULT = 106;//
+    IMAGE_ERROR = 107;
+    FALAT = 108;
+}
+
+enum Retcode {
+    UNKNOW = 0;
+    OK = 200;
+    CREATED = 201;
+    ACCEPTED = 202;
+    NOT_MODEFIED = 304;
+    BAD_REQUEST = 400;
+    UNAUTHORIZED = 401;
+    FORBIDDEN = 403;
+    NOT_FOUND = 404;
+    METHOD_NOT_ALLOWED = 405;
+    INTERNAL_ERROR = 500;
+}
+
+enum CmdType {
+    CMDTYPEUNKNOW = 0;
+    JOBDEL = 1;
+    JOBPAUSE = 2;
+    JOBRESUME = 3;
+    JOBRERUN = 4;
+    JOBKILL = 5;
+    JOBLOG = 6;
+}
+enum JobPriority {
+    // Very Low
+    VL = 0;
+    //    Low
+    L = 1;
+    //    Middle
+    M = 2;
+    // High
+    H = 3;
+    // Very High
+    VH = 4;
+}
+enum PauseStatus {
+    PROCESSING = 0;
+    PAUSING = 1;
+}
+
+// /////////////////////////////////////////
+
+// // MQ: RPC [command request]
+message CommandRequest {
+    string user = 1; // required
+    CmdType cmd_type = 2; // required
+    repeated string job_handle = 3; // required
+    string platfrom = 4; // required
+    string cluster = 5; // required
+    map<string, string> options = 6;
+}
+
+// MQ: RPC [command response]
+message CommandResqonse {
+    Retcode retcode = 1; // required
+    string info = 2;
+    map<string, string> options = 3;
+}
+
+message EchoRequest {
+  string In = 1;
+}
+
+message LouderRequest {
+  // In is the string to echo back
+  string In = 1;
+  // Loudness is the number of exclamations marks to add to the echoed string
+  int32 Loudness = 2;
+}
+
+message EchoResponse {
+  string Out = 1;
+}
+
+///////////////////////////
+
+message LukeRequest {
+    string method = 1;
+    string user = 2;
+    string key = 3;
+    string checksum = 4;
+    oneof body {
+        SubmitRequest sub_job = 5;
+        BatchSubmitRequest batch_job = 6;
+        JobListRequest job_list = 7;
+        JobRequest job = 8;
+        BatchJobRequest batch_status = 9;
+        GlanceJobRequest glance = 10;
+        GlanceJobStatusRequest glance_status= 11;
+        QueryJobRequest query_job = 12;
+        UpdateJobStatusRequest update_status= 13;
+        RerunJobRequest rerun_job = 14;
+        BatchRerunJobsRequest rerun_jobs = 15;
+        BatchMigrationRequest batch_migration = 16; // 批量迁移任务运算集群
+        BatchUpdateStatusRequest batch_update_status = 18; // 批量修改状态
+        BatchUpdateDetailRequest batch_update_detail = 19; // 批量修改核数/Option
+        BatchUpdatePrioRequest batch_update_prio = 20; // 批量修改优先级
+    }
+}
+
+// Method [SubmitJob]
+message SubmitRequest {
+    string user = 1;
+    string user_group = 2;
+    string name = 3; // required
+    string image = 4; // required
+    int32 cores = 5; // required
+    int32 memory = 6; // required
+    int32 n_cores = 7;
+    float user_prio = 8;
+    float sys_prio = 9;
+    string input = 10;
+    string output = 11;
+    string key = 12;
+    string checksum = 13;
+    int32 timeout = 14;
+    int32 storage = 15;
+    string group = 16;
+    string cluster = 17;
+    bool rerun = 18; //表示任务由于客观因素失败后,是否自动重跑 默认为True
+    bool remove = 19; //表示任务跑完是否删除容器,默认为True,已不从options中提取
+    int32 rerun_times = 20; //表示任务由于客观因素失败后的重跑次数 默认为 3次
+    string node = 21;
+    float budget_scale = 22;
+    map<string, string> options = 23;
+}
+
+// Method [BatchSubmitJob]
+message BatchSubmitRequest {
+    repeated SubmitRequest jobs = 1;
+}
+
+// Method [ListJob]
+message JobListRequest {
+    string job_handle = 1;
+    string user = 2;
+    int32 offset = 3;
+    int32 limit = 4;
+    JobStatus status = 5;
+    map<string, string> filters = 6;
+    string order = 7;
+}
+
+// Method [Job/JobStatus]
+message JobRequest {
+    int64 job_id = 1;
+    string job_handle = 2;
+}
+
+// Method [BatchJobStatus]
+message BatchJobRequest {
+    repeated JobRequest handles = 1;
+}
+
+// Method [GlanceJob]
+message GlanceJobRequest {
+    int64 time_gap = 1;
+    map<string, string> filters = 6;
+}
+
+// Method [GlanceJobStatus]
+message GlanceJobStatusRequest {
+    JobStatus status = 1;
+    bool g_cores = 2;
+    bool g_prio = 3;
+    bool g_cluster = 4;
+    bool g_image = 5;
+}
+
+// Method [QueryJob]
+message QueryJobRequest {
+    bool schedule = 1;
+    int32 offset = 2;
+    int32 limit = 3;
+    JobStatus status = 4;
+    int32 cores = 5;
+    JobPriority prio = 6;
+    string cluster = 7;
+    string image = 8;
+    int64 hitherto = 9;        // up to now --- second
+}
+
+// Method [UpdateJobStatus]
+message UpdateJobStatusRequest {
+    int64 job_id = 1;
+    string job_handle = 2;
+    JobStatus status = 3;
+    int64 time_stamp = 4;
+}
+
+// Method [RerunJob]
+message RerunJobRequest {
+    string job_handle = 1;
+    int32 cores = 2;
+    int32 memory = 3;
+    string image = 4;
+    string cluster = 5;
+}
+
+// Method [RerunJobs]
+message BatchRerunJobsRequest {
+    repeated RerunJobRequest rerun_details = 1;
+}
+
+// Method [MigrateJobs]
+message BatchMigrationRequest {
+    repeated MigrationTask migration_tasks = 1;
+}
+
+// Method [UpdateJobsStatus]
+message BatchUpdateStatusRequest {
+    repeated JobStatusRequest handles_req = 1;
+}
+
+message JobStatusRequest {
+    int64 job_id = 1;
+    string job_handle = 2;
+    JobStatus status = 3;
+}
+
+// Method [UpdateJobsDetail]
+message BatchUpdateDetailRequest {
+    repeated JobDetail job_details = 1;
+}
+
+message JobDetail {
+    string job_handle = 1;
+    int32 cores = 2;
+    int32 memory = 3;
+    map<string, string> options = 4;
+
+}
+
+// Method [UpdateJobsPrio]
+message BatchUpdatePrioRequest {
+    repeated JobPrio job_prios = 1;
+}
+
+message JobPrio {
+    string job_handle = 1;
+    float user_prio = 2;
+}
+
+
+
+//////////////////////////////////
+
+message LukeResponse {
+    Retcode retcode = 1;
+    string info = 2;
+    oneof body {
+        SubmitResponse job_info = 5;
+        BatchSubmitResponse job_infos = 6;
+        ListResponse list_jobs = 7;
+        JobEncodeResponse job_encode = 8;
+        JobDetailResponse job_detail = 9;
+        JobsDetailResponse jobs_detail = 10;
+        GlanceJobResponse glance_jobs = 11;
+        GlanceJobStatusResponse glance_counts = 12;
+        UpdateBackResult job_result = 13;
+        string file = 14;
+        BatchRerunJobsResponse jobs_rerun_result = 15;
+        BatchMigrationResponse migration_result = 16;
+        BatchUpdateResponse jobs_result = 18; // 批量修改任务返回的结果
+    }
+}
+
+// Method [SubmitJob]
+message SubmitResponse {
+    int64 job_id = 1;
+    string job_handle = 2;
+}
+
+// Method [BatchSubmitJob]
+message BatchSubmitResponse {
+    repeated SubmitResponse jobs_info = 1;
+}
+
+// Method [ListJob]
+message ListResponse {
+    int32 count = 1;
+    int32 offset = 2;
+    int32 limit = 3;
+    repeated JobDetailResponse jobs = 4;
+}
+
+// Method [Job]
+message JobEncodeResponse {
+    string data = 1;  // json type
+}
+
+// Method [JobStatus]
+message JobDetailResponse {
+    int64 id = 1;
+    string handle = 2;
+    string user = 3;
+    string user_group = 4;
+    string name = 5;
+    string image = 6;
+    int32 cores = 7;
+    int32 n_cores = 8;
+    int32 memory = 9;
+    JobPriority user_prio = 10;
+    float sys_prio = 11;
+    JobStatus status = 12;
+    PauseStatus pause = 13;
+    string cluster = 14;
+    string input = 15;
+    string output = 16;
+    int32 timeout = 17;
+    bool rerun = 18;
+    int32 try_times = 19;
+    int32 run_times = 20;
+    bool remove = 21;
+    string cluster_id = 22;
+    string node_id = 23;
+    int64 create_at = 24;
+    int64 update_at = 25;
+    string group = 26;
+    map<string, string> options = 27;
+    string store_in = 28;
+}
+
+// Method [BatchJobStatus/QueryJob]
+message JobsDetailResponse {
+    repeated JobDetailResponse jobs = 1;
+}
+
+// Method [GlanceJob]
+message GlanceJobResponse {
+    map<string, int32> glance_data = 1;
+}
+
+// Method [GlanceJobStatus]
+message GlanceJobStatusResponse {
+    repeated JobStatusInfo jobs_info = 1;
+}
+
+message JobStatusInfo {
+    int64 count = 1;
+    int32 cores = 2;
+    JobPriority prio = 3;
+    string cluster = 4;
+    string user = 5;
+    JobStatus status = 6;
+    string image = 7;
+}
+
+// Method [UpdateJobStatus]
+message UpdateBackResult {
+    string job_handle = 1;
+    string info = 2;
+    bool code = 3;
+}
+
+// Method [UpdateJobsStatus/UpdateJobsDetail/UpdateJobsPrio]
+message BatchUpdateResponse {
+    repeated UpdateBackResult results = 1;
+}
+
+// Method [RerunJob]
+message RerunJobResult {
+    int64 job_id = 1;
+    string job_handle = 2;
+    string info = 3;
+    bool execution = 4;
+}
+
+// Method [RerunJobs]
+message BatchRerunJobsResponse {
+    repeated RerunJobResult results = 1;
+}
+
+// Method [MigrateJobs]
+message BatchMigrationResponse {
+    repeated MigrationTask migration_tasks = 1;
+}
+
+message MigrationTask {
+    MigrationFilter filter = 1;
+    MigrationTarget target = 2;
+}
+
+message MigrationFilter {
+    string image = 1;
+    repeated string users = 2;
+    int32 cores = 3;
+    string cluster = 4;
+}
+
+message MigrationTarget {
+    map<string, int64> target_cluster = 1;
+}

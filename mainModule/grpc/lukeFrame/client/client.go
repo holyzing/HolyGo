@@ -3,12 +3,13 @@ package client
 import (
 	"context"
 	"fmt"
-	"github.com/uber/jaeger-client-go"
 	"io"
 	"mainModule/grpc/lukeFrame/client/transport"
 	"os"
 	"strings"
 	"time"
+
+	"github.com/uber/jaeger-client-go"
 
 	"github.com/go-kit/kit/endpoint"
 	gokitOt "github.com/go-kit/kit/tracing/opentracing"
@@ -23,7 +24,7 @@ const (
 	ServiceName  = "luke-service" // Name of service.
 	ServiceProxy = "envoy"        // TODO 服务发现, 注册代理 ???
 	// EndpointsID  = ServiceName    // ID to lookup a service endpoint with.
-	maxMsgSize   = 20 * 1024 * 1024
+	maxMsgSize = 20 * 1024 * 1024
 )
 
 // ------------------------------------

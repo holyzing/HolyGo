@@ -49,7 +49,7 @@ func TestRun(t *testing.T) {
 	<-errc
 	println("--------------------> closing tracer ")
 	trace.TracerCloser.Close()
-	time.Sleep(5*time.Second)
+	time.Sleep(5 * time.Second)
 	println("--------------------> tracer closed !")
 	log.Println("exit")
 }
@@ -98,3 +98,11 @@ func RunMetricsServer(errc chan error) {
 }
 
 // H_Invincible_L
+
+// truss
+
+// httprouter
+// mux
+// m=http.NewServeMux
+// m.Handle
+// http.HandlerFunc
