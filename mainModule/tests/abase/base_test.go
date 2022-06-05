@@ -67,6 +67,21 @@ func TestVarGo(t *testing.T) {
 	println(v1, v2)
 }
 
+func TestFloatInt(t *testing.T) {
+	i := 32
+	// i = 1.2
+	var f float32 = 2.1
+	// f = i
+	f = 1.3
+	var d float64 = 2.3
+	// f = d
+	println(i, f, d)
+
+	i++
+	println(i)
+
+}
+
 // NOTE Go语言中的常量
 func TestConstGo(t *testing.T) {
 	// const declaration cannot have type without expression

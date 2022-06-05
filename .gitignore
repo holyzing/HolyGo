@@ -18,3 +18,6 @@ temp/
 tmp/
 .go-path/
 *.log
+
+.idea/
+.vscode/
