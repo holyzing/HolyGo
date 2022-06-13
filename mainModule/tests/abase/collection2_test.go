@@ -2,6 +2,7 @@ package abase
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 	"testing"
 )
@@ -118,8 +119,22 @@ func TestMoreMap(t *testing.T) {
 	if ok {
 		fmt.Println(val)
 	}
+	delete(m, "ggg")
 	fmt.Println(strings.EqualFold("a", "A"))
 	// NOTE As a special case, it is legal to append a string to a byte slice, like this:
 	// slice = append([]byte("hello "), "world"...)
 	fmt.Println(([]byte)("a"))
+
+	// NOTE 对于一个 nil 的集合,用len不会报错
+	var s []int
+	fmt.Println(s == nil, len(s))
+
+	str := strconv.QuoteToASCII("哈哈哈哈")
+
+	fmt.Println(str)
+	fmt.Println(str[1 : len(str)-1])
+
+	var i int64 = 0
+	fmt.Println(i == 0)
+
 }

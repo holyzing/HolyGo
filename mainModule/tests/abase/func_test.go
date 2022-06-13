@@ -230,7 +230,7 @@ func TestClosure(t *testing.T) {
 	increment := func() func() int { //外层函数
 		//1.定义了一个局部变量
 		i := 0
-		//2.定义了一个匿名函数，给变量自增并返回
+		//2.定义了一个内部函数，给变量自增并返回
 		fun := func() int { //内层函数
 			i++
 			return i
@@ -242,8 +242,8 @@ func TestClosure(t *testing.T) {
 	res1 := increment()      //res1 = fun
 	fmt.Printf("%T\n", res1) //func() int
 	fmt.Println(&res1)
-	println(&res1) // ??? 函数变量的地址 ？
-	println(res1)  // ??? 函数体的地址 ？
+	println(&res1) // ??? 函数变量指向的地址 ？
+	println(res1)  // ??? 函数变量的地址 ？
 	println("-----------------------------------------")
 	v1 := res1()
 	fmt.Println(v1) //1
@@ -269,12 +269,12 @@ func TestClosure(t *testing.T) {
 // https://zhuanlan.zhihu.com/p/159135741
 
 // -------------------------------------------------------------------------------------------------
-// Go-Kit EndPoint 闭包
 
 func aaa() (done func(), err error) {
 	return func() { print("aaa: done") }, nil
 }
 
+// NOTE 返回参数是带变量的参数, 那么return语句将会先做赋值, 然后返回的操作, done指向的函数参数被改变
 func bbb() (done func(), _ error) {
 	done, err := aaa()
 	return func() { print("bbb: surprise!"); done() }, err

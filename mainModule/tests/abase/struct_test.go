@@ -211,3 +211,21 @@ make(T, args)与new(T)有着不同的功能，make只能创建slice、map和chan
 例如，一个slice，是一个包含指向数据（内部array）的指针、长度和容量的三项描述符；
 在这些项目被初始化之前，slice为nil。对于slice、map和channel来说，make初始化了内部的数据结构，填充适当的值。
 */
+
+func TestStructExtendPolymorphic(t *testing.T) {
+	type Area struct {
+		Name string
+	}
+	type State struct {
+		Area
+		Name string
+	}
+
+	show := func(area Area) {
+		println(area.Name)
+	}
+	// NOTE 面向对象三大特征 封装, 继承 多态
+	// show(State{})
+	println(show)
+	fmt.Println(State{})
+}

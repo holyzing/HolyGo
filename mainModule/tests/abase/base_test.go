@@ -3,6 +3,7 @@ package abase
 // should not use dot imports (ST1001)go-staticcheck
 import (
 	"fmt"
+	"math"
 	"reflect"
 	"testing"
 	"unicode/utf8"
@@ -456,4 +457,11 @@ func TestGotoGo(t *testing.T) {
 	// 	fmt.Println(err)
 	// 	exitProcess()
 
+}
+
+func TestMath(t *testing.T) {
+	fmt.Println(7 / 5)
+	fmt.Println(7 / 3)
+	fmt.Println(math.Ceil(float64(7) / 5))
+	fmt.Println(math.Ceil(float64(7) / 3))
 }

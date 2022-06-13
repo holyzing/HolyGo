@@ -108,3 +108,33 @@ func TestBlockCode(t *testing.T) {
 	// 局部代码块限定局部变量的作用域
 	// fmt.Println(i)
 }
+
+// ----------------------------------------------------------------------
+
+type TestPointerMethod struct {
+	Name string
+}
+
+func (t *TestPointerMethod) ChangePointerName(newName string) {
+	t.Name = newName
+}
+
+func (t TestPointerMethod) ChangeNonPointerName(newName string) {
+	t.Name = newName
+}
+
+func TestMethodPointer(t *testing.T) {
+	tpm := TestPointerMethod{Name: "origin"}
+	fmt.Println(tpm)
+	tpm.ChangePointerName("name1")
+	fmt.Println(tpm)
+	tpmp := &tpm
+	tpmp.ChangePointerName("name2")
+	fmt.Println(tpm)
+	tpm.ChangeNonPointerName("name3")
+	fmt.Println(tpm)
+	tpmp.ChangeNonPointerName("name4")
+	fmt.Println(tpm)
+	// 指针方法，即使使用非指针引用，this也是该非指针变量的指针
+	// 如果是非指针方法，则this，是该变量的值的拷贝，即使该变量是个指针变量
+}

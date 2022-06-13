@@ -47,6 +47,10 @@ func TestString(t *testing.T) {
 	s3 := `a`
 	fmt.Println(s1, s2, s3)
 
+	ss := "this is a 字符串"
+	println(ss[:10])
+	// NOTE 切片是按照字节切的, 而不是按照UNICODE切, 这和python的list有很大的区别
+	println(ss[11:12])
 }
 
 //NOTE Go语言中的数组
