@@ -26,4 +26,7 @@ if __name__ == '__main__':
 {'src_port': '192.168.1.2:2684', 'dst_port': '192.168.1.2:8080', 'seq_num': 3899408498, 'ack_num': 1777454152, 'data_offset': 5, 'flags': {'FIN': 0, 'SYN': 0, 'RST': 0, 'PSH': 0, 'ACK': 1, 'URG': 0}, 'win_size': 10232, 'tcp_checksum': 31586, 'urg_pointer': 0}
 {'src_port': '192.168.1.2:2684', 'dst_port': '192.168.1.2:8080', 'seq_num': 3899408498, 'ack_num': 1777454152, 'data_offset': 5, 'flags': {'FIN': 1, 'SYN': 0, 'RST': 0, 'PSH': 0, 'ACK': 1, 'URG': 0}, 'win_size': 10232, 'tcp_checksum': 31585, 'urg_pointer': 0}
 {'src_port': '192.168.1.2:8080', 'dst_port': '192.168.1.2:2684', 'seq_num': 1777454152, 'ack_num': 3899408499, 'data_offset': 5, 'flags': {'FIN': 0, 'SYN': 0, 'RST': 0, 'PSH': 0, 'ACK': 1, 'URG': 0}, 'win_size': 10233, 'tcp_checksum': 31584, 'urg_pointer': 0}
+
+TODO Renova 中socket存在的问题，以及如何优化它， 网络编程的应用实战
 """
+
