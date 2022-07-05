@@ -478,8 +478,9 @@ class Server(object):
     # 在win下才支持混杂模式
 
     def __init__(self):
+        # NOTE WIN 下的socket混杂,模式.捕获网口所有的报文
+
         # 创建socket 指明工作协议类型(IPv4) 套接字类型 工作具体的协议(IP协议)
-        # win
         self.sock:socket.socket = socket.socket(socket.AF_INET, socket.SOCK_RAW, socket.IPPROTO_IP)
 
         # 设置自己的主机ip和端口
@@ -500,10 +501,26 @@ class Server(object):
     def loop_server(self):
         """
         循环读取网络数据
+        IP数据报的构成：
+
+        1、固定部分
+            版本占4位、首部长度占4位、区分服务占8位、总长度占16位、
+            标识(identification)占16位、标志(flag)占3位、片偏移占13位、
+            生存时间占8位、协议占8位、首部检验和占16位、
+            源地址占32位、
+            目的地址占32位
+
+            共 4+4+8+16+16+3+13+8+8+16+32+32 = 160bit = 20B
+
+        2、可变部分
+            IP首部的可变部分就是一个可选字段。选项字段用来支持排错、测量以及安全等措施，内容很丰富。
+            此字段的长度可变，从1个字节到40个字节不等，取决于所选择的项目。
+            某些选项项目只需要1个字节，它只包括1个字节的选项代码。
         :return:
         """
         while True:
-            packet, addr = self.sock.recvfrom(65535)
+            packet, addr = self.sock.recvfrom(65535)  # 2^20
+            #
             task = ServerProcessTask(packet)
             self.pool.put(task)
             result = task.get_result()

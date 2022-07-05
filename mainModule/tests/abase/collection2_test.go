@@ -110,6 +110,10 @@ func TestMoreSlice(t *testing.T) {
 	}(ss1)
 	fmt.Println(cap(ss1), len(ss1), ss1)
 	fmt.Println(ss1[0:3])
+
+	var ss []string
+	fmt.Println("-----------------", ss, strings.Join(ss, "_"))
+
 }
 
 func TestMoreMap(t *testing.T) {

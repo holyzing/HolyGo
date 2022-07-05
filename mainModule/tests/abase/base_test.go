@@ -81,6 +81,8 @@ func TestFloatInt(t *testing.T) {
 	i++
 	println(i)
 
+	println(5 / 2)
+	println(5 / 3)
 }
 
 // NOTE Go语言中的常量
