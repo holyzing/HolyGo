@@ -3,7 +3,6 @@ package abase
 import (
 	"errors"
 	"fmt"
-	"math"
 	"net"
 	"os"
 	"path/filepath"
@@ -16,48 +15,37 @@ func TestError(t *testing.T) {
 		Go语言没有提供像Java、C#语言中的try...catch异常处理方式，而是通过函数返回值逐层往上抛。
 		这种设计，鼓励工程师在代码中显式的检查错误，而非忽略错误，好处就是避免漏掉本应处理的错误。
 		但是带来一个弊端，让代码啰嗦
-	*/
-	// Java 存在运行时和编译时异常,作为编译型语言,GO语言是无法捕获编译性异常的,只能直接修复该异常.
-	// 对于 Error,则层层返回,由用户显式的处理.
 
-	// Go中的错误也是一种类型。错误用内置的error 类型表示。
-	// 就像其他类型的，如int，float64，。错误值可以存储在变量中，从函数中返回.
-	f, err := os.Open("/test.txt")
-	if err != nil {
-		fmt.Println(err)
-		// 返回的 err 是一个 指针变量 ???
-		return // ??? 异常将会抛出到上一层的调用层 ???
-	}
-	/*
-		NOTE 如果一个函数或方法返回一个错误，那么按照惯例，它必须是函数返回的 ??? 最后一个值 ???
-			 因此，Open 函数返回的值是最后一个值。
+		Java 存在运行时和编译时异常,作为编译型语言,GO语言是无法捕获编译性异常的,只能直接修复该异常.
 
-			处理错误的惯用方法是将返回的错误与nil进行比较。nil值表示没有发生错误，而非nil值表示出现错误。
-	*/
+		Java中规定异常或者错误必须是 Throwable（子类 Error和Exception）的，且只能 throws 或者 try...catch...，且不能作为值赋值给变量。
+		对于未抛出或者未捕获的异常，异常发生后，如果找不到处理器，就终止执行程序，在控制台打印出 stack trace。
 
-	// ---------------------------------------------------------------------------------------------
+		而Go只是在约定中将引用类型interface Error类型作为异常标志，且是作为值在函数中传递的，它就是一个一般意义上的类型的值而已。
+		处理错误的惯用方法是将返回的错误与nil进行比较。nil值表示没有发生错误，而非nil值表示出现错误。
 
-	/*
 		实现该接口方法的类型 都属于 error 类型, 当打印该类型时, fmt.Println 会调用 Error 方法获取错误描述.
 		但是 单单通过用户态的描述信息,有时候很难定位错误,更需要相关的堆栈信息来定位,分析错误.
 			type error interface {
 		    	Error() string
 			}
 	*/
-	// ??? 接口类型引用的变量都是 指针型变量,该变量可直接访问所指向内存的值,或者拿到内存所代表的变量
-	// ??? 即 *ptr <==> ptr   ???
 
 	// NOTE 1.断言底层结构类型并从结构字段获取更多信息
-	// type os.PathError is not an expression
-	// epp := os.PathError
-	if err, ok := err.(*os.PathError); ok { // ??? 这是什么语法结构 ???
+	f, err := os.Open("/test.txt")
+	if err, ok := err.(*os.PathError); err == nil {
+		fmt.Println(f.Name(), "opened successfully")
+	} else if ok {
 		fmt.Println("File at path", err.Path, "failed to open")
-		return
+	} else {
+		fmt.Println("Uncaught error")
 	}
 
 	// NOTE 2. 断言底层结构类型，并通过调用struct类型的方法获取更多信息
 	addr, err := net.LookupHost("golangbot123.com")
-	if err, ok := err.(*net.DNSError); ok {
+	if err, ok := err.(*net.DNSError); err == nil {
+		fmt.Println(addr)
+	} else if ok {
 		if err.Timeout() {
 			fmt.Println("operation timed out")
 		} else if err.Temporary() {
@@ -67,143 +55,37 @@ func TestError(t *testing.T) {
 		}
 		return
 	}
-	fmt.Println(addr)
-	//根据f进行文件的读或写
-	fmt.Println(f.Name(), "opened successfully")
 
 	// NOTE 3. 直接与类型错误的变量进行比较
+	// error 类型 定义了 == 操作符
 	// Glob函数用于返回与模式匹配的所有文件的名称。
 	// 当模式出现错误时，该函数将返回一个错误ErrBadPattern
-	// var ErrBadPattern = errors.New("syntax error in pattern")
-	files, error := filepath.Glob("[")
-	// 如果要将错误返回给调用方, 错误必须作为return 之前的最后一个变量定义
-	if error != nil && error == filepath.ErrBadPattern {
-		fmt.Println(error)
-		return
+	files, err := filepath.Glob("[")
+	if err == filepath.ErrBadPattern {
+		fmt.Println(err)
+	} else {
+		fmt.Println("matched files", files)
 	}
-	fmt.Println("matched files", files)
 
 	// NOTE 4. 不要号忽略错误
 	files2, _ := filepath.Glob("[")
 	fmt.Println("matched files", files2)
 	// 使用行号中的空白标识符,这个模式本身是畸形的, 由于忽略了这个错误，输出看起来好像没有文件匹配这个模式
 	// 这会造成一个错误的业务判断
-}
 
-func circleAreaWithError(radius float64) (float64, error) {
-	if radius < 0 { // 源码中的实现是返回一个 errorString 结构体,实现了 Error 方法
-		return 0, errors.New("Area calculation failed, radius is less than zero")
-	} else if radius > 100 {
-		return 0, fmt.Errorf("Area calculation failed, radius %0.2f is more than 100", radius)
-	}
-	return math.Pi * radius * radius, nil
-}
-
-type areaError struct {
-	err    string
-	radius float64
-	length float64
-	width  float64
-}
-
-func circleAreaWithStruct(radius float64) (float64, error) {
-	if radius < 0 {
-		arrErr := &areaError{}
-		arrErr.err = "radius is negative"
-		arrErr.radius = radius
-		return 0, arrErr
-	}
-	return math.Pi * radius * radius, nil
-}
-
-func (e *areaError) Error() string {
-	return fmt.Sprintf("radius %0.2f: %s", e.radius, e.err)
-}
-
-func (e *areaError) lengthNegative() bool {
-	return e.length < 0
-}
-
-func (e *areaError) widthNegative() bool {
-	return e.width < 0
-}
-
-func rectArea(length, width float64) (float64, error) {
-	err := ""
-	if length < 0 {
-		err += "length is less than zero"
-	}
-	if width < 0 {
-		if err == "" {
-			err = "width is less than zero"
-		} else {
-			err += ", width is less than zero"
-		}
-	}
-	if err != "" {
-		return 0, &areaError{err, 0, length, width}
-	}
-	return length * width, nil
-}
-
-// NOTE GO语言中的自定义错误
-func TestCustomError(t *testing.T) {
-	radius := -20.0
-	area, err := circleAreaWithError(radius)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	fmt.Printf("Area of circle %0.2f", area)
-
+	// NOTE 5. GO语言中的自定义错误
 	/*
 		NOTE 使用struct类型和字段提供关于错误的更多信息
-			还可以使用将错误接口实现为错误的struct类型。这给我们提供了更多的错误处理的灵活性。
-			在上述示例中, 如果想要访问导致错误的半径，现在唯一的方法是解析错误描述区域计算失败，半径-20.00小于零。
-			这不是一种正确的方法，因为如果描述发生了变化，那么我们解析字符串的代码就会中断。
-			模仿标准库异常信息的策略，在“断言底层结构类型并从struct字段获取更多信息”，
-			并使用struct字段来提供对导致错误的半径的访问。
-			创建一个实现错误接口的struct类型，并使用它的字段来提供关于错误的更多信息。
+		还可以使用将错误接口实现为错误的struct类型。这给我们提供了更多的错误处理的灵活性。
+		如果想要访问导致错误的具体 “数据”，如果单纯的从 error.Error() 中解析错误描述，
+		这不是一种正确的方法，因为如果描述发生了变化，那么我们解析字符串的代码就会中断。
+		模仿标准库异常信息的策略，在“断言底层结构类型并从struct字段获取更多信息”，
+		并使用struct字段来提供对导致错误的“数据”的访问。
+		创建一个实现错误接口的struct类型，并使用它的字段来提供关于错误的更多信息。
 	*/
-	area, err = circleAreaWithStruct(radius)
-	if err != nil {
-		if err, ok := err.(*areaError); ok {
-			fmt.Printf("Radius %0.2f is less than zero", err.radius)
-			return
-		}
-		fmt.Println(err)
-		return
-	}
-	fmt.Printf("Area of circle %0.2f", area)
-
-	// --------------------------------------------------------------------------------------------
-	length, width := -5.0, -9.0
-	area, err = rectArea(length, width)
-	if err != nil {
-		if err, ok := err.(*areaError); ok {
-			if err.lengthNegative() {
-				fmt.Printf("error: length %0.2f is less than zero\n", err.length)
-
-			}
-			if err.widthNegative() {
-				fmt.Printf("error: width %0.2f is less than zero\n", err.width)
-
-			}
-		}
-		fmt.Println(err)
-		return
-	}
-	fmt.Println("area of rect", area)
-	// --------------------------------------------------------------------------------------------
-
-	// NOTE if 语句的另一种语法结构
-	// if a, b := 1, false; a {
-	// non-bool a (type int) used as if condition
-	if a, b := true, 1; a {
-		println(b)
-	}
-
 }
+
+// -------------------------------------------------------------------------------------------------
 
 /*
 	Golang中引入两个内置函数 panic 和 recover 来触发和终止异常处理流程，
@@ -225,13 +107,13 @@ NOTE panic
 	3、返回函数F的调用者G，在G中，调用函数F语句之后的代码不会执行，
 	   假如函数G中存在要执行的defer函数列表，按照defer的逆序执行，
 	   这里的defer 有点类似 try-catch-finally 中的 finally
-	4、直到goroutine整个退出，并报告错误
+	4、同3依次退出函数调用链，直到goroutine整个退出，并报告错误
 
 NOTE recover
 	1、内建函数
 	2、用来控制一个goroutine的panicking行为，捕获panic，从而影响应用的行为
 	3、一般的调用建议
-		a). 在defer函数中，通过recever来终止一个gojroutine的panicking过程，从而恢复正常代码的执行
+		a). 在defer函数中，通过recever来终止一个goroutine的panicking过程，从而恢复正常代码的执行
 		b). 可以获取通过panic传递的error
 
 NOTE 简单来讲：go中可以抛出一个panic的异常，然后在defer中通过recover捕获这个异常，然后正常处理。
@@ -368,7 +250,7 @@ func TestPanicRecover(t *testing.T) {
 	var err error
 	res := funcA(err)
 	// ??? 如果在一个函数内遇到panic，在函数外部recover，则该函数最后的返回值会是它的零值
-	if res == "" {
+	if res != "" {
 		fmt.Printf("err is nil\n")
 	} else {
 		fmt.Printf("err is %v\n", err)

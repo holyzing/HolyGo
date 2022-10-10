@@ -462,8 +462,26 @@ func TestGotoGo(t *testing.T) {
 }
 
 func TestMath(t *testing.T) {
-	fmt.Println(7 / 5)
+	fmt.Println(7/5, 7/3, 7%5, 7%3, 3/7, 3%7)
 	fmt.Println(7 / 3)
+
 	fmt.Println(math.Ceil(float64(7) / 5))
 	fmt.Println(math.Ceil(float64(7) / 3))
+
+	var s = []int{1, 2, 3, 4, 5, 6}
+	fmt.Println(s[0:1], s[4:5])
+	pageSize := 4
+
+	count := len(s) / pageSize
+	if count*pageSize < len(s) {
+		count += 1
+	}
+
+	for i := 0; i < count; i++ {
+		endIndex := (i + 1) * pageSize
+		if endIndex > len(s) {
+			endIndex = len(s)
+		}
+		fmt.Println(s[i*pageSize : endIndex])
+	}
 }

@@ -116,6 +116,19 @@ func TestMoreSlice(t *testing.T) {
 
 }
 
+func TestMoreSlice2(t *testing.T) {
+	s := 2
+	ss := []string{"a", "b", "c", "d"}
+	for i := 0; i <= len(ss)/s; i++ {
+		end := (i + 1) * s
+		if (i+1)*s >= len(ss) {
+			end = len(ss)
+		}
+		fmt.Println(ss[i*s : end])
+	}
+	fmt.Println(2%5, 4/5, 6/5)
+}
+
 func TestMoreMap(t *testing.T) {
 	var m map[string]string = map[string]string{"a": "a"}
 	fmt.Println("=====", m["b"] == "")
