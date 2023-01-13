@@ -1,0 +1,96 @@
+syntax = "proto3";
+
+package majorana;
+option  go_package = "./";
+
+import "github.com/googleapis/googleapis/google/api/annotations.proto";
+import "google/protobuf/empty.proto";
+import "majorana.proto";
+
+message MQ {
+  // @inject_tag: pg:"queue_name,type:varchar(128),notnull"
+  string queue_name = 1;
+  // @inject_tag: pg:"polling_wait_seconds,default:0"
+  int32 polling_wait_seconds = 2;  //接收消息等待时间, 长轮询 or 周期短轮询
+  // @inject_tag: pg:"visibility_timeout,default:30"
+  int32 visibility_timeout = 3;  //可见性超时
+  // @inject_tag: pg:"max_size,default:256"
+  int32 max_msg_size = 4;  //最大消息大小 ,默认256K
+  // @inject_tag: pg:"max_retention_seconds,default:604800"
+  int32 max_retention_seconds = 5;  //消息保留周期, 默认7天
+  // @inject_tag: pg:"delay_seconds,notnull,default:0"
+  int32 delay_seconds = 6;  //交付延迟, 默认
+  // @inject_tag: pg:"queue_type,notnull,default:'standard' "
+  string queue_type = 7;  //消息队列类型, fifo或者standard
+  // @inject_tag: pg:"queue_id,notnull,unique"
+  string queue_id = 8;
+  // @inject_tag: pg:"tenant_id,type:varchar(128),notnull"
+  string tenant_id = 9;
+  // @inject_tag: pg:"user_id,type:varchar(128),notnull"
+  string user_id = 10;
+}
+
+message CreateMQRequest {
+  string queue_name = 1;
+  int32  polling_wait_seconds = 2;  //接收消息等待时间, 长轮询 or 周期短轮询
+  int32  visibility_timeout = 3;  //可见性超时
+  int32  max_msg_size = 4;  //最大消息大小 ,默认256K
+  int32  max_retention_seconds = 5;  //消息保留周期, 默认7天
+  int32  delay_seconds = 6;  //交付延迟, 默认
+  string queue_type = 7;  //消息队列类型, fifo或者standard
+}
+
+message CreateMQResponse {
+  string            queue_name = 1;
+  majorana.XRequest x_request = 100;
+}
+
+message PureMQRequest {
+  string queue_name = 1;
+}
+
+message PureMQResponse {
+  string            queue_name = 1;
+  majorana.XRequest x_request = 100;
+}
+
+message DeleteMQRequest {
+  string queue_name = 1;
+}
+
+message DeleteMQResponse {
+  string            queue_name = 1;
+  majorana.XRequest x_request = 100;
+}
+
+message ListMQResponse {
+  repeated MQ       queues = 1;
+  majorana.XRequest x_request = 100;
+}
+
+service MQService {
+  rpc CreateMQ(CreateMQRequest) returns (CreateMQResponse) {
+    option (google.api.http) = {
+      post: "/v1/mq/create"
+      body: "*"
+    };
+  }
+
+  rpc PureMQ(PureMQRequest) returns (PureMQResponse) {
+    option (google.api.http) = {
+      post: "/v1/mq/pure"
+      body: "*"
+    };
+  }
+  rpc DeleteMQ(DeleteMQRequest) returns (DeleteMQResponse) {
+    option (google.api.http) = {
+      post: "/v1/mq/delete"
+      body: "*"
+    };
+  }
+  rpc ListMQ(google.protobuf.Empty) returns (ListMQResponse) {
+    option (google.api.http) = {
+      get: "/v1/mq/list"
+    };
+  }
+}

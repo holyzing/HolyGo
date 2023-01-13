@@ -9,6 +9,10 @@ from collections.abc import Generator, Coroutine
     yield 和 yield from 可以实现程序执行的流转，但是在我们的示例程序中，所有程序都是按照我们的调用顺序执行的，
     这似乎并没有体现并发的概念，对于 IO 密集型任务的调度又是如何实现并发的 ？
     IO 处理过程中，主程序继续执行，IO 处理过程中不会占用 CPU（线程） 资源吗 ？
+
+    python 运行时是如何检测到 IO调用的，是因为 async关键字 ？，但是async标记的函数局部代码也是包含非io调用的，
+    那python 又是如何检测到IO调用结束后，去回调继续执行await之后的代码呢 ？
+
 """
 
 
@@ -73,10 +77,10 @@ def asyncioTest():
         await用于挂起阻塞的异步调用接口。其作用在一定程度上类似于yield。
         注意这里是，一定程度上，意思是效果上一样（都能实现暂停的效果），但是功能上却不兼容。
         就是你不能在生成器中使用await，也不能在async 定义的协程中使用yield
-        
+
         async 中不能使用yield， yield from 后面可接可迭代对象，也可接future对象或者协程对象；
         await 不能在未使用async修饰的函数中使用 ， await 后面必须要接 future对象或者协程对象；
-        
+
         asyncio.sleep(n)，是asyncio自带的工具函数，可以模拟IO阻塞，并返回一个协程对象。
     """
     func = asyncio.sleep(2)
