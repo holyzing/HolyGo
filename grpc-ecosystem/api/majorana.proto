@@ -1,0 +1,8 @@
+syntax = "proto3";
+
+package majorana;
+option  go_package = "./";
+
+message XRequest {
+  string x_request_id = 1;
+}

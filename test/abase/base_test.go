@@ -221,6 +221,10 @@ func TestTypeGo(t *testing.T) {
 	r2 := rune(32)
 	fmt.Println(r2)
 
+	var anyTmp any
+	if anyTmp == nil {
+		fmt.Println(anyTmp)
+	}
 }
 
 // NOTE Go语言中的操作符
