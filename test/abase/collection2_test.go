@@ -183,3 +183,31 @@ func TestChangeMapValue(t *testing.T) {
 	// cannot assign to struct field m2["A"].A in mapgo
 	// m2["A"].A = 3
 }
+
+func TestCopy(t *testing.T) {
+	var n = []string{"1", "2", "3"}
+	var s = make([]string, len(n))
+	copy(s, n)
+	fmt.Println(s, n)
+}
+
+func generateNewSlice(uploads []string) (faileds []string) {
+
+	for i := 0; i < len(uploads)-1; i++ {
+		faileds = append(faileds, uploads[i])
+	}
+
+	return faileds
+}
+
+func TestSliceRevalue(t *testing.T) {
+	var uploads = []string{"a", "b", "c", "d", "e", "f"}
+	faileds := generateNewSlice(uploads)
+	fmt.Println(len(faileds))
+
+	for i := 0; i < 5; i++ {
+		failedsCount := len(faileds)
+		fmt.Println(failedsCount, faileds)
+		faileds = generateNewSlice(faileds)
+	}
+}

@@ -30,8 +30,17 @@ func init() {
 	fmt.Println("-------- main: init2 --------")
 }
 
+var (
+	BuildTime = "NoValue"
+	GitHash   = "NoValue"
+)
+
+// go build -tags=dev -ldflags "-X 'main.BuildTime=`date`' -X 'main.GitHash=`git rev-parse HEAD`'" main.go
+
 // func main and int must have no arguments and no return values
 func main() {
+	fmt.Println("BuildTime:", BuildTime)
+	fmt.Println("GitHash:", GitHash)
 
 	fmt.Println("-------- main: main --------")
 	r := gin.Default()

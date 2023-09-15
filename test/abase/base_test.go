@@ -2,6 +2,8 @@ package abase
 
 // should not use dot imports (ST1001)go-staticcheck
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"math"
 	"reflect"
@@ -488,4 +490,31 @@ func TestMath(t *testing.T) {
 		}
 		fmt.Println(s[i*pageSize : endIndex])
 	}
+}
+
+func TestString2(t *testing.T) {
+	// strs := strings.Split("a", ",,")
+	// fmt.Println(strs, len(strs), strs[0], strs[1:])
+
+	var ss = []string{"&&"}
+	bf := bytes.NewBuffer([]byte{})
+	e := json.NewEncoder(bf)
+	e.SetEscapeHTML(true)
+	err := e.Encode(ss)
+	fmt.Println(err, bf.String())
+
+	var s2 []string
+	// r := bytes.NewReader([]byte("[\"\u0026\"]"))
+	// err = json.NewDecoder(r).Decode(&s2)
+	// fmt.Println(err, s2)
+
+	b, _ := json.Marshal(ss)
+	fmt.Println(string(b))
+
+	err = json.Unmarshal(b, &s2)
+	fmt.Println(err, s2)
+
+	// b, _ := json.Marshal("[\"&\"]")
+	// fmt.Println(string(b))
+
 }

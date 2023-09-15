@@ -144,6 +144,10 @@ func TestInterfaceWithCommonTypeOrPointerType(t *testing.T) {
 	}
 	f1(f2())
 
+	// NOTE
+	var s = (*string)(nil)
+	print(s)
+
 }
 
 // TODO struct 的接口实现和继承接口, 以及继承结构体
